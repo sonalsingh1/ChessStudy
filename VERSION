@@ -1,7 +1,9 @@
 VERSION NUMBER:
--V 1.0.1
+-V 1.0.2
 
 DESCRIPTION:
+-V 1.0.2
+Updated the timer and game over part
 
 -V 1.0.1
 Updated the single timer, testing if it works under the Fork function - Jason
