@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+	<link id="css" rel="stylesheet" type="text/css" href="./css/homepage.css">
+	<title>Home Page</title>
+	
+</head>
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<div id="header">
+	<img class="logo" src="https://cdn.shopify.com/shopifycloud/hatchful-web/assets/6fcc76cfd1c59f44d43a485167fb3139.png" style="height: 100%;">
+</div>
+<div id="center">
+    <div id="sidebar-l">
+    	<h1>User Name: FakeUser123</h1> <br>
+    	<button class="side-l">Profile/Statistics</button><br>
+    	<button class="side-l">Challenges</button><br>
+    	<button class="side-l">Top Rankings</button><br>
+    	<button class="side-l">Log Out</button><br>
+    </div>
+    <div id="main-wrapper">
+        <div id="main">
+        	<!-- The following code allows a wliding button between choosing CHESS and CHESS960, however it is complicate to communicate the data selected with backend, I deided to go with the radio button for version 1.0 and upgrade the UI in the later version. Please do not delete the following code! -->
+
+<!--         	<div class="top_row">
+	        	<div class="slide_btn">
+		        	CLASSIC
+					<label class="switch">
+					  <input type="checkbox">
+					  <span class="slider"></span>
+					</label>
+					CHESS960
+	        	</div>
+        	</div> -->
+
+
+        	<div class="game_type_btn">
+        		Choose A Game Type: <br>
+        		<input type="radio" name="game_type" value="chess" checked> CHESS&nbsp;&nbsp;
+        		<input type="radio" name="game_type" value="chess960"> CHESS960
+        	</div>
+        	<br> 
+        	<div class="rating_type_btn">
+        		Choose A Rating Type: <br>
+        		<input type="radio" name="rate_type" value="unrated"> Unrated&nbsp;&nbsp;
+        		<input type="radio" name="rate_type" value="aggregate" checked> Aggregate&nbsp;&nbsp;
+        		<input type="radio" name="rate_type" value="independent"> Independent
+        	</div>
+        	<br>
+        	<div class="style_time_btn">
+        		Choose Your Game Style And Time Limitation: <br>
+        		<label class="game_style"> Bullet: </label> 
+        		<input type="radio" name="style_time" value="bullet_1+0*0" checked> 1+0*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="bullet_2+1*0"> 2+1*0&nbsp;&nbsp;
+        		<br>
+        		<label class="game_style">Blitz: </label>
+        		<input type="radio" name="style_time" value="blitz_3+0*0"> 3+0*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="blitz_3+0*1"> 3+0*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="blitz_3+2*0"> 3+2*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="blitz_3+2*1"> 3+2*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="blitz_5+0*0"> 5+0*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="blitz_5+0*1"> 5+0*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="blitz_5+3*0"> 5+3*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="blitz_5+3*1"> 5+3*1&nbsp;&nbsp;
+        		<br>
+        		<label class="game_style">Rapid: </label>
+        		<input type="radio" name="style_time" value="rapid_10+0*0"> 10+0*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_10+0*1"> 10+0*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_10+0*2"> 10+0*2&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_10+5*0"> 10+5*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_10+5*1"> 10+5*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_10+5*2"> 10+5*2&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_15+0*0"> 15+0*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_15+10*0"> 15+10*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_15+10*1"> 15+10*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="rapid_15+10*2"> 15+10*2&nbsp;&nbsp;
+        		<br>
+        		<label class="game_style">Long: </label>
+        		<input type="radio" name="style_time" value="long_30+0*0"> 30+0*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="long_30+0*1"> 30+0*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="long_30+0*2"> 30+0*2&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="long_30+20*0"> 30+20*0&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="long_30+20*1"> 30+20*1&nbsp;&nbsp;
+        		<input type="radio" name="style_time" value="long_30+20*2"> 30+20*2&nbsp;&nbsp;
+        	</div>
+        </div>
+    </div>
+	<script>
+		function startPlay() {
+			let btn = $('input[name="style_time"]:checked').val().split("_");
+			let gameType = btn[0];
+			btn = btn[1].split("+");
+			let startTime = btn[0];
+			btn = btn[1].split("*");
+			let timeIncrement = btn[0];
+			let forkAvailable = btn[1];
+			let data = {
+				gameType: gameType,
+				startTime: startTime,
+				timeIncrement: timeIncrement,
+				forkAvailable: forkAvailable
+			};
+			// location.href = "/game?gameType="+gameType+"&startTime="+startTime+"&timeIncrement="+timeIncrement+"&forkAvailable="+forkAvailable;
+			location.href = "/game?" + $.param(data);
+		}
+	</script>
+    <div id="sidebar-r">
+    	<button id="play" onclick="startPlay()"><strong>Play</strong></button> <br>
+    	<button id="challenge">Challenge</button> <br>
+    	<a href="https://www.google.com" id="cancel">Cancel</a>
+    </div>
+</div>
+
+<div id="footer"></div>
+</body>
+</html>

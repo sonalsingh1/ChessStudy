@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Chess 0</title>
+  <!--  Including the chessboardjs files:-->
+  <!-- <script src="chess.js"></script>  -->
+  <link rel="stylesheet" 
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" 
+  integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+    crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" 
+  integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+    crossorigin="anonymous"></script>
+
+  <script src="./easytimer/easytimer.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+  <script src="./chessboard/js/chessboard-0.3.0.min.js"></script>
+  <link rel="stylesheet" href="./chessboard/css/chessboard-0.3.0.min.css">
+
+  <style>
+    .number::-webkit-inner-spin-button, 
+    .number::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+    }
+    #roomNumbers{
+      margin: 7px;
+    }
+    body{
+      margin: 4%
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- <script src="./index.js"></script> -->
+  <!-- <script>
+    var socket = io();
+  </script> -->
+  <div class="container">
+    <div class="game" id="game_1">
+        <div class="board" id="board_1" style="width: 300px; margin: auto"></div>
+        <div id="timer_1" style="text-align: center">
+          <div class="values"></div>
+        </div>
+
+        <div style="margin: auto">
+
+          <div id="player"></div>
+          <div id="roomNumbers">Enter a room number between 0 and 99</div>
+          <form>
+            <div class="row">
+              <div class="col">
+                <input type="number" id="room" min="0" max="99"
+                class="form-control form-control-md number">
+              </div>
+              <div class="col">
+                <button id="button" class="btn btn-success" onclick="connect()">Connect</button>
+              </div>
+            </div>
+          </form>
+
+          <div id="state">Join Game</div>
+          <br>
+
+          <div class="hidden" hidden="true">
+          <label>Status:</label>
+          <div id="status_1"></div>
+          <br>
+          <label>FEN:</label>
+          <div id="fen_1"></div>
+          <br>
+          <label>PGN:</label>
+          <div class="pgn" id="pgn_1"></div>
+          <button id="forkButton_1" class="btn btn-success" onclick="sendForkRequest(this.parentNode.parentNode.parentNode)" disabled="true" hidden="true">Fork</button>
+            <button id="resignButton_1" class="btn btn-success">Resign</button>
+            <button id="drawButton_1" class="btn btn-success">Offer Draw</button>
+            <button id="DLButton_1" class="btn btn-success">DL Game</button>
+          </div>
+      </div>
+    </div>
+    <br><br>
+  </div>
+
+
+  <script src="./game.js"></script>
+
+</body>
+
+
+</html>
