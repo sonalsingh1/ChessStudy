@@ -48,7 +48,7 @@ io.on('connection', function (socket) {
         }
         
         console.log(games[roomId]);
-        players = games[roomId].players
+        players = games[roomId].players;
         
 
         if (players % 2 == 0) color = 'black';
