@@ -309,9 +309,9 @@ function fork(id){
 
 var sendForkRequest = function (parentHtml) {
     // alert('clicked')
-    console.log(parentHtml);
+    // console.log(parentHtml);
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
-    console.log("this clicked id is " + id);
+    // console.log("this clicked id is " + id);
     let msg = {roomId: roomId, ID:id};
     socket.emit('fork', msg);
 };
@@ -330,6 +330,18 @@ function startTimer(id, timeObject) {
         $('#timer_' + id + ' .values').html('KABOOM!!');
     });
 }
+
+function sendResignRequest(parentHtml){
+    let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
+    let msg = {roomId: roomId, ID:id};
+    socket.emit('resign',msg);
+    // followed by the game over logic (losing side)
+}
+
+socket.on("opponentResign", function(msg){
+    alert(msg);
+    // followed by the game over logic (winning side)
+});
 // console.log(color)
 
 // var board;

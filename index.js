@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 
 io.on('connection', function (socket) {
     var color;
-    var playerId =  Math.floor((Math.random() * 100) + 1)
+    var playerId =  Math.floor((Math.random() * 100) + 1);
     
 
     console.log(playerId + ' connected');
@@ -82,6 +82,10 @@ io.on('connection', function (socket) {
     socket.on('fork', function (msg) {
         // console.log('fork received');
         io.emit('player_fork', msg)
+    });
+
+    socket.on('resign', function(msg){
+        socket.broadcast.emit('opponentResign', msg)
     })
 
     
