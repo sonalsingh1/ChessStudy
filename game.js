@@ -64,7 +64,11 @@ socket.on('play', function (msg) {
         // change fork available counts
         document.querySelector("#forkCount").hidden = false;
         document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-
+        if(parseInt(param[3]) === 0) {
+            document.querySelector("#forkButton_1").disabled = true;
+        } else {
+            document.querySelector("#forkButton_1").disabled = false;
+        }
         // start timer (first game) for this player
         startTimer(1, {minutes: parseInt(param[1])});
         if (color === 'black') {
@@ -83,7 +87,11 @@ socket.on('move', function (msg) {
         console.log("moved with " + (msg.boardId-1));
         updateStatus(msg.boardId);
         timers[msg.boardId-1].start(); // resume the timer
-        fork.disabled = false; // active the fork
+
+        // if there still more fork for the user
+        if (parseInt(param[3]) > 0) {
+            fork.disabled = false; // active the fork
+        }
     }
 });
 
@@ -193,7 +201,11 @@ socket.on('player', (msg) => {
         // show fork count
         document.querySelector("#forkCount").hidden = false;
         document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-
+        if(parseInt(param[3]) === 0) {
+            document.querySelector("#forkButton_1").disabled = true;
+        } else {
+            document.querySelector("#forkButton_1").disabled = false;
+        }
         // Start the timer (first game) for this player
         startTimer(1, {minutes: parseInt(param[1])});
         if (color === 'black') {
@@ -220,10 +232,7 @@ socket.on('player', (msg) => {
 });
 
 socket.on('player_fork', function (msg){
-    // alert(123);
     fork(msg.ID);
-    // this line is just for testing,
-    // document.querySelector('#roomNumbers').style.backgroundColor = 'red';
 });
 
 function updateStatus (id) {
@@ -265,6 +274,7 @@ function updateStatus (id) {
     $status.html(status);
     $fen.html(games[id - 1].fen());
     $pgn.html(games[id - 1].pgn());
+    if(parseInt(param[3]) === 0) document.querySelector("#forkButton_"+id).disabled = true;
 }
 
 function fork(id){
