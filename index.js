@@ -104,6 +104,11 @@ io.on('connection', function (socket) {
         io.emit('player_fork', msg)
     });
 
+    socket.on('timeUp', function (msg) {
+        socket.broadcast.emit('timeUp', msg);
+        console.log("timeUp " + msg);
+    });
+
     socket.on('resign', function(msg){
         socket.broadcast.emit('opponentResign', msg)
     });

@@ -32,7 +32,7 @@ var roomNumber = document.getElementById("roomNumbers");
 var button = document.getElementById("button");
 var state = document.getElementById('state');
 var forkButton= document.getElementById('forkButton_1');
-
+var timeUp=false;
 
 var connect = function(){
     roomId = room.value;
@@ -236,26 +236,30 @@ function updateStatus (id) {
         moveColor = 'Black'
     }
 
-    // checkmate?
-    if (games[id - 1].in_checkmate()) {
-        status = 'Game over, ' + moveColor + ' is in checkmate.'
-    }
+    if(timeUp){
+        console.log("Time Up for board ", id)
+        status = 'Game over, time Up for ' + moveColor
+    }else {
+        // checkmate?
+        if (games[id - 1].in_checkmate()) {
+            status = 'Game over, ' + moveColor + ' is in checkmate.'
+        }
 
-    // draw?
-    else if (games[id - 1].in_draw()) {
-        status = 'Game over, drawn position'
-    }
+        // draw?
+        else if (games[id - 1].in_draw()) {
+            status = 'Game over, drawn position'
+        }
 
-    // game still on
-    else {
-        status = moveColor + ' to move'
+        // game still on
+        else {
+            status = moveColor + ' to move'
 
-        // check?
-        if (games[id - 1].in_check()) {
-            status += ', ' + moveColor + ' is in check'
+            // check?
+            if (games[id - 1].in_check()) {
+                status += ', ' + moveColor + ' is in check'
+            }
         }
     }
-
     $status.html(status);
     $fen.html(games[id - 1].fen());
     $pgn.html(games[id - 1].pgn());
@@ -350,9 +354,36 @@ function startTimer(id, timeObject) {
 
     // this event listener needs to be CHANGED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     timer.addEventListener('targetAchieved', function (e) {
-        $('#timer_' + id + ' .values').html('KABOOM!!');
+        $('#timer_' + id + ' .values').html('TIME UP!!');
+        let msg = {roomId: roomId, ID:id};
+        socket.emit('timeUp', msg);
+        gameOverForBoard(msg)
+        timeUp=true;
     });
 }
+
+function gameOverForBoard(msg){
+    state.innerHTML = 'GAME OVER'+msg.ID;
+    console.log(msg);
+    // socket.emit('gameOver', roomId)
+    if(msg.roomId===roomId){
+        console.log('id=',msg.ID);
+        timers[msg.ID-1].stop();
+        resetTimer(msg.ID);
+        updateStatus(msg.ID);
+    }
+}
+
+function resetTimer(id) {
+    timers[id-1] = new easytimer.Timer();
+    timers[id-1].reset();
+}
+
+socket.on('timeUp', function (msg) {
+    gameOverForBoard(msg);
+    timeUp=true;
+    updateStatus(msg.ID);
+});
 
 function sendResignRequest(parentHtml){
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
