@@ -12,7 +12,7 @@ function getPara() {
 }
 
 
-var games = Array(parseInt(param[3])+1); // 5 is subject to change, depends on how many forks are available to the user.
+var games = Array(parseInt(param[3]) * 2 + 1);
 // initialize all games in the games array
 for (let i = 0; i <games.length; i++) {
     games[i] = new Chess();
@@ -20,7 +20,7 @@ for (let i = 0; i <games.length; i++) {
 
 var boards = Array(games.length); // Same length boards array contains all game boards corresponding to games.
 var timers = Array(games.length); // Same length timers array contains all timers corresponding to each board.
-var socket = io();
+var socket = io(); // calls the io.on('connection') function in server.
 
 var color = "white";
 var players;
@@ -53,13 +53,16 @@ socket.on('play', function (msg) {
     if (msg == roomId) {
         play = false;
         state.innerHTML = "Game in progress";
-
+        // document.querySelector(".msg").hidden = true;
+        
         // show fork button
-        forkButton.disabled=false;
         forkButton.hidden=false;
 
         // show pgn, fen, and status
         document.querySelector('.hidden').hidden=false;
+        // change fork available counts
+        document.querySelector("#forkCount").hidden = false;
+        document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
 
         // start timer (first game) for this player
         startTimer(1, {minutes: parseInt(param[1])});
@@ -180,9 +183,14 @@ socket.on('player', (msg) => {
         play = false;
         socket.emit('play', msg.roomId);
         state.innerHTML = "Game in Progress";
+        // document.querySelector(".msg").hidden = true;
         forkButton.disabled=false;
         forkButton.hidden=false;
         document.querySelector('.hidden').hidden=false;
+
+        // show fork count
+        document.querySelector("#forkCount").hidden = false;
+        document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
 
         // Start the timer (first game) for this player
         startTimer(1, {minutes: parseInt(param[1])});
@@ -219,22 +227,22 @@ socket.on('player_fork', function (msg){
 function updateStatus (id) {
     var status = '';
 
-    var $status = $('#status_'+id);
-    var $fen = $('#fen_'+id);
-    var $pgn = $('#pgn_'+id);
+    var $status = $('#status_' + id);
+    var $fen = $('#fen_' + id);
+    var $pgn = $('#pgn_' + id);
 
     var moveColor = 'White';
-    if (games[id-1].turn() === 'b') {
+    if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
     }
 
     // checkmate?
-    if (games[id-1].in_checkmate()) {
+    if (games[id - 1].in_checkmate()) {
         status = 'Game over, ' + moveColor + ' is in checkmate.'
     }
 
     // draw?
-    else if (games[id-1].in_draw()) {
+    else if (games[id - 1].in_draw()) {
         status = 'Game over, drawn position'
     }
 
@@ -243,14 +251,14 @@ function updateStatus (id) {
         status = moveColor + ' to move'
 
         // check?
-        if (games[id-1].in_check()) {
+        if (games[id - 1].in_check()) {
             status += ', ' + moveColor + ' is in check'
         }
     }
 
-    $status.html(status)
-    $fen.html(games[id-1].fen())
-    $pgn.html(games[id-1].pgn())
+    $status.html(status);
+    $fen.html(games[id - 1].fen());
+    $pgn.html(games[id - 1].pgn());
 }
 
 function fork(id){
@@ -258,6 +266,7 @@ function fork(id){
     let fen = games[id-1].fen();
     totalGame++;
     let new_id = totalGame;
+    console.log(new_id);
     var container = document.querySelector(".container");
     var new_div = document.querySelector("#game_"+id).cloneNode(true);
     var new_board = new_div.querySelector("#board_"+id);
@@ -305,6 +314,7 @@ function fork(id){
         seconds: timeRemain.seconds,
         secondTenths: timeRemain.secondTenths});
     if (!timers[id-1].isRunning()) timers[new_id-1].pause();
+
 }
 
 var sendForkRequest = function (parentHtml) {
@@ -314,6 +324,19 @@ var sendForkRequest = function (parentHtml) {
     // console.log("this clicked id is " + id);
     let msg = {roomId: roomId, ID:id};
     socket.emit('fork', msg);
+
+    param[3] = (parseInt(param[3]) - 1).toString(); // decrease fork count by 1
+
+    // update the fork count
+    document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
+    let allFork = document.querySelectorAll(".f_btn");
+
+    // if fork available left is 0, disable all fork buttons
+    if (param[3] === "0") {
+        for (let i = 0; i < allFork.length; i++) {
+            allFork[i].disabled = true;
+        }
+    }
 };
 
 function startTimer(id, timeObject) {
@@ -341,6 +364,22 @@ function sendResignRequest(parentHtml){
 socket.on("opponentResign", function(msg){
     alert(msg);
     // followed by the game over logic (winning side)
+});
+
+function offerDraw(parentHtml) {
+    let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
+    let msg = {roomId: roomId, ID:id};
+    socket.emit('offerDraw',msg);
+}
+
+socket.on('opponentOfferDraw', function(msg){
+    let id = msg.ID;
+    let re = confirm("Your opponent offered a draw on board #" + id + ". Do you accept?");
+    if (re === true){
+        // draw logic follows
+    } else {
+        // dont accept draw
+    }
 });
 // console.log(color)
 

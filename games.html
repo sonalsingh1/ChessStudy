@@ -44,6 +44,9 @@
   <!-- <script>
     var socket = io();
   </script> -->
+  <div id="forkCount" hidden="true">
+  <strog></strog>
+  </div>
   <div class="container">
     <div class="game" id="game_1">
         <div class="board" id="board_1" style="width: 300px; margin: auto"></div>
@@ -54,7 +57,7 @@
         <div style="margin: auto">
 
           <div id="player"></div>
-          <div id="roomNumbers">Enter a room number between 0 and 99</div>
+          <div id="roomNumbers">Enter a room number between 0 and 99</div>-->
           <form>
             <div class="row">
               <div class="col">
@@ -79,14 +82,14 @@
           <br>
           <label>PGN:</label>
           <div class="pgn" id="pgn_1"></div>
-          <button id="forkButton_1" class="btn btn-success" onclick="sendForkRequest(this.parentNode.parentNode.parentNode)" disabled="true" hidden="true">Fork</button>
+          <button id="forkButton_1" class="btn btn-success f_btn" onclick="sendForkRequest(this.parentNode.parentNode.parentNode)" disabled="true" hidden="true">Fork</button>
             <button id="resignButton_1" class="btn btn-success" onclick="sendResignRequest(this.parentNode.parentNode.parentNode)">Resign</button>
-            <button id="drawButton_1" class="btn btn-success">Offer Draw</button>
+            <button id="drawButton_1" class="btn btn-success" onclick="offerDraw(this.parentNode.parentNode.parentNode)">Offer Draw</button>
             <button id="DLButton_1" class="btn btn-success">DL Game</button>
           </div>
       </div>
+      <br><br>
     </div>
-    <br><br>
   </div>
 
 

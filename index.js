@@ -1,12 +1,13 @@
 const express = require('express');
 const http = require('http');
 const socket = require('socket.io');
+const queues = new Map();
 
-const port = process.env.PORT || 8080
-
+const port = process.env.PORT || 8080;
+var totalRoom = 0;
 var app = express();
-const server = http.createServer(app)
-const io = socket(server)
+const server = http.createServer(app);
+const io = socket(server);
 var players;
 var joined = true;
 
@@ -21,7 +22,26 @@ for (let i = 0; i < 100; i++) {
 
 app.get('/game', (req, res) => {
     console.log(req.query);
+    let qName = req.query.gameType + "_" + req.query.startTime + "_" + req.query.timeIncrement + "_" + req.query.forkAvailable;
+    if (!queues.has(qName)){
+        queues.set(qName,[]);
+    }
+    queues.get(qName).push("1"); // 1 is going to be replaced by the player ID
+    console.log(queues);
     res.sendFile(__dirname + '/games.html');
+    // if (queues.get(qName).length >= 2) {
+    //     let player1 = queues.get(qName).pop();
+    //     let player2 = queues.get(qName).pop();
+    //     let roomId = totalRoom++;
+    //     games[roomId].players = 2;
+    //     games[roomId].pid = [player1, player2];
+    //
+    //     socket.emit('player', { player1, players: 1 ,color: 'white', roomId });
+    //     socket.emit('player', { player2, players: 2, color: 'black', roomId });
+    //
+    //     console.log('send files');
+    //     res.sendFile(__dirname + '/games.html');
+    // }
 });
 
 app.get('/', (req, res) => {
@@ -43,7 +63,7 @@ io.on('connection', function (socket) {
             games[roomId].pid[games[roomId].players - 1] = playerId;
         }
         else{
-            socket.emit('full', roomId)
+            socket.emit('full', roomId);
             return;
         }
         
@@ -86,7 +106,11 @@ io.on('connection', function (socket) {
 
     socket.on('resign', function(msg){
         socket.broadcast.emit('opponentResign', msg)
-    })
+    });
+
+    socket.on('offerDraw', function(msg){
+        socket.broadcast.emit('opponentOfferDraw',msg)
+    });
 
     
 });
