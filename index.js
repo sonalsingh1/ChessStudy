@@ -26,22 +26,8 @@ app.get('/game', (req, res) => {
     if (!queues.has(qName)){
         queues.set(qName,[]);
     }
-    queues.get(qName).push("1"); // 1 is going to be replaced by the player ID
-    console.log(queues);
     res.sendFile(__dirname + '/games.html');
-    // if (queues.get(qName).length >= 2) {
-    //     let player1 = queues.get(qName).pop();
-    //     let player2 = queues.get(qName).pop();
-    //     let roomId = totalRoom++;
-    //     games[roomId].players = 2;
-    //     games[roomId].pid = [player1, player2];
-    //
-    //     socket.emit('player', { player1, players: 1 ,color: 'white', roomId });
-    //     socket.emit('player', { player2, players: 2, color: 'black', roomId });
-    //
-    //     console.log('send files');
-    //     res.sendFile(__dirname + '/games.html');
-    // }
+
 });
 
 app.get('/', (req, res) => {
@@ -51,33 +37,14 @@ app.get('/', (req, res) => {
 
 io.on('connection', function (socket) {
     var color;
-    var playerId =  Math.floor((Math.random() * 100) + 1);
-    
+    var playerId =  Math.floor((Math.random() * 100) + 1); // extracted from DB
+
 
     console.log(playerId + ' connected');
 
-    socket.on('joined', function (roomId) {
-        // games[roomId] = {}
-        if (games[roomId].players < 2) {
-            games[roomId].players++;
-            games[roomId].pid[games[roomId].players - 1] = playerId;
-        }
-        else{
-            socket.emit('full', roomId);
-            return;
-        }
-        
-        console.log(games[roomId]);
-        players = games[roomId].players;
-        
+    socket.on('joined', function (qName) {
+        match(playerId, qName);
 
-        if (players % 2 == 0) color = 'black';
-        else color = 'white';
-
-        socket.emit('player', { playerId, players, color, roomId })
-        // players--;
-
-        
     });
 
     socket.on('move', function (msg) {
@@ -117,8 +84,26 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('opponentOfferDraw',msg)
     });
 
+    function match(playerId, qName){
+        // empty queue
+        let roomId = totalRoom;
+        if (queues.get(qName).length === 0) {
+            queues.get(qName).push(playerId); // PlayerId is going to be replaced by the player ID extracted from DB
+            socket.emit('player', { playerId, players: 1 ,color: 'white', roomId });
+            // console.log("first player send " + roomId);
+        } else { // already someone in the room
+            queues.get(qName).pop(); // pop the player on top
+            socket.emit('player', { playerId, players: 2 ,color: 'black', roomId });
+            // console.log("second player send " + roomId);
+            totalRoom++;
+        }
+        console.log(queues);
+
+    }
     
 });
+
+
 
 server.listen(port);
 console.log('Connected');

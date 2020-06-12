@@ -35,14 +35,14 @@ var forkButton= document.getElementById('forkButton_1');
 var timeUp=false;
 
 var connect = function(){
-    roomId = room.value;
-    if (roomId !== "" && parseInt(roomId) <= 100) {
-        room.remove();
-        roomNumber.innerHTML = "Room Number " + roomId;
-        button.remove();
-        socket.emit('joined', roomId);
-    }
+    let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3];
+    room.remove();
+    button.remove();
+    socket.emit('joined', qName);
 };
+
+// manually call the connect function
+connect();
 
 socket.on('full', function (msg) {
     if(roomId == msg)
@@ -51,6 +51,7 @@ socket.on('full', function (msg) {
 
 socket.on('play', function (msg) {
     if (msg == roomId) {
+        console.log(1);
         play = false;
         state.innerHTML = "Game in progress";
         // document.querySelector(".msg").hidden = true;
@@ -173,6 +174,7 @@ var onSnapEnd = function () {
 
 
 socket.on('player', (msg) => {
+    roomId = msg.roomId; // setting up the roomID
     var plno = document.getElementById('player');
     color = msg.color;
 
@@ -237,7 +239,7 @@ function updateStatus (id) {
     }
 
     if(timeUp){
-        console.log("Time Up for board ", id)
+        console.log("Time Up for board ", id);
         status = 'Game over, time Up for ' + moveColor
     }else {
         // checkmate?
@@ -252,7 +254,7 @@ function updateStatus (id) {
 
         // game still on
         else {
-            status = moveColor + ' to move'
+            status = moveColor + ' to move';
 
             // check?
             if (games[id - 1].in_check()) {
