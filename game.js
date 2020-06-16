@@ -20,6 +20,7 @@ for (let i = 0; i <games.length; i++) {
 
 var boards = Array(games.length); // Same length boards array contains all game boards corresponding to games.
 var timers = Array(games.length); // Same length timers array contains all timers corresponding to each board.
+var opponentTimers = Array(games.length) // Same length timers array contains all opponent timers corresponding to each board.
 var socket = io(); // calls the io.on('connection') function in server.
 
 var color = "white";
@@ -71,10 +72,11 @@ socket.on('play', function (msg) {
         }
         // start timer (first game) for this player
         startTimer(1, {minutes: parseInt(param[1])});
+        startOpponentTimer(1,{minutes: parseInt(param[1])});
         if (color === 'black') {
             timers[0].pause();
             forkButton.disabled = true;
-        }
+        } else opponentTimers[0].pause();
     }
     // console.log(msg)
 });
@@ -87,6 +89,7 @@ socket.on('move', function (msg) {
         console.log("moved with " + (msg.boardId-1));
         updateStatus(msg.boardId);
         timers[msg.boardId-1].start(); // resume the timer
+        opponentTimers[msg.boardId-1].pause(); // pause the opponent timer
 
         // if there still more fork for the user
         if (parseInt(param[3]) > 0) {
@@ -138,6 +141,7 @@ var onDrop = function (source, target) {
         state.innerHTML = 'GAME OVER';
         socket.emit('gameOver', roomId)
         timers[id-1].stop();
+        opponentTimers[id-1].stop();
     }
 
     // illegal move
@@ -146,6 +150,7 @@ var onDrop = function (source, target) {
         updateStatus(id);
         socket.emit('move', { move: move, board: games[0].fen(), room: roomId, boardId: this.ID});
         timers[id-1].pause(); // pause the timer
+        opponentTimers[id-1].start();
         fork.disabled = true; // disable the fork
         // console.log(this.ID)
 };
@@ -208,10 +213,11 @@ socket.on('player', (msg) => {
         }
         // Start the timer (first game) for this player
         startTimer(1, {minutes: parseInt(param[1])});
+        startOpponentTimer(1,{minutes: parseInt(param[1])});
         if (color === 'black') {
             timers[0].pause();
             forkButton.disabled = true;
-        }
+        } else opponentTimers[0].pause();
     }
     else
         state.innerHTML = "Waiting for Second player";
@@ -287,6 +293,7 @@ function fork(id){
     var new_div = document.querySelector("#game_"+id).cloneNode(true);
     var new_board = new_div.querySelector("#board_"+id);
     let new_timer = new_div.querySelector("#timer_"+id);
+    let new_opponentTimer = new_div.querySelector("#opponentTimer_"+id);
 
     // setting up new id (incremented by 1) for all copied elements
     new_div.querySelector("#fen_"+id).setAttribute("id","fen_"+new_id);
@@ -297,6 +304,7 @@ function fork(id){
     new_div.setAttribute("class","game");
     new_div.setAttribute("id","game_"+new_id);
     new_timer.setAttribute("id", "timer_"+new_id);
+    new_opponentTimer.setAttribute('id','opponentTimer_'+new_id);
     container.appendChild(new_div);
 
     // NOTE: this example uses the chess.js library:
@@ -330,7 +338,12 @@ function fork(id){
         seconds: timeRemain.seconds,
         secondTenths: timeRemain.secondTenths});
     if (!timers[id-1].isRunning()) timers[new_id-1].pause();
-
+    startOpponentTimer(new_id, {
+        days: timeRemain.days,
+        minutes: timeRemain.minutes,
+        seconds: timeRemain.seconds,
+        secondTenths: timeRemain.secondTenths});
+    if (!opponentTimers[id-1].isRunning()) opponentTimers[new_id-1].pause();
 }
 
 var sendForkRequest = function (parentHtml) {
@@ -371,6 +384,21 @@ function startTimer(id, timeObject) {
         socket.emit('timeUp', msg);
         gameOverForBoard(msg)
         timeUp=true;
+    });
+}
+
+function startOpponentTimer(id, timeObject) {
+    opponentTimers[id-1] = new easytimer.Timer();
+    let timer = opponentTimers[id-1];
+    timer.start({countdown: true, startValues: timeObject});
+    $('#opponentTimer_' + id + ' .values').html(timer.getTimeValues().toString());
+    timer.addEventListener('secondsUpdated', function (e) {
+        $('#opponentTimer_'+ id + ' .values').html(timer.getTimeValues().toString());
+    });
+
+    // this event listener needs to be CHANGED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    timer.addEventListener('targetAchieved', function (e) {
+        $('#opponentTimer_' + id + ' .values').html('TIME UP!!');
     });
 }
 
