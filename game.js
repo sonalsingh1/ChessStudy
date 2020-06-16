@@ -34,7 +34,7 @@ var button = document.getElementById("button");
 var state = document.getElementById('state');
 var forkButton= document.getElementById('forkButton_1');
 var timeUp=false;
-
+var resigned= false;
 var connect = function(){
     let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3];
     room.remove();
@@ -252,9 +252,11 @@ function updateStatus (id) {
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
     }
-
-    if(timeUp){
-        console.log("Time Up for board ", id);
+    if(resigned){
+        console.log("Resigned board= ", id)
+        status = 'Game over, resigned by ' + moveColor
+    }else if(timeUp){
+        console.log("Time Up for board ", id)
         status = 'Game over, time Up for ' + moveColor
     }else {
         // checkmate?
@@ -429,11 +431,15 @@ function sendResignRequest(parentHtml){
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
     let msg = {roomId: roomId, ID:id};
     socket.emit('resign',msg);
+    resigned=true;
+    gameOverForBoard(msg);
     // followed by the game over logic (losing side)
 }
 
 socket.on("opponentResign", function(msg){
     alert(msg);
+    resigned= true;
+    gameOverForBoard(msg);
     // followed by the game over logic (winning side)
 });
 
