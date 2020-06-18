@@ -52,7 +52,6 @@ socket.on('full', function (msg) {
 
 socket.on('play', function (msg) {
     if (msg == roomId) {
-        console.log(1);
         play = false;
         state.innerHTML = "Game in progress";
         // document.querySelector(".msg").hidden = true;
@@ -149,6 +148,7 @@ var onDrop = function (source, target) {
     else
         updateStatus(id);
         socket.emit('move', { move: move, board: games[0].fen(), room: roomId, boardId: this.ID});
+        increaseTime(id);
         timers[id-1].pause(); // pause the timer
         opponentTimers[id-1].start();
         fork.disabled = true; // disable the fork
@@ -340,11 +340,13 @@ function fork(id){
         seconds: timeRemain.seconds,
         secondTenths: timeRemain.secondTenths});
     if (!timers[id-1].isRunning()) timers[new_id-1].pause();
+
+    let opponentTimeRemain = opponentTimers[id-1].getTimeValues();
     startOpponentTimer(new_id, {
-        days: timeRemain.days,
-        minutes: timeRemain.minutes,
-        seconds: timeRemain.seconds,
-        secondTenths: timeRemain.secondTenths});
+        days: opponentTimeRemain.days,
+        minutes: opponentTimeRemain.minutes,
+        seconds: opponentTimeRemain.seconds,
+        secondTenths: opponentTimeRemain.secondTenths});
     if (!opponentTimers[id-1].isRunning()) opponentTimers[new_id-1].pause();
 }
 
@@ -458,6 +460,34 @@ socket.on('opponentOfferDraw', function(msg){
         // dont accept draw
     }
 });
+
+function increaseTime(id){
+    let timer = timers[id-1];
+    let timeIncrement = parseInt(param[2]);
+    let new_time = timer.getTimeValues();
+    let s = new_time.seconds + timeIncrement;
+    if (s >= 60) { //need increase in minutes
+        new_time.minutes += Math.floor(s / 60);
+        new_time.seconds = s % 60;
+    } else {
+        new_time.seconds += timeIncrement;
+    }
+    timer.start({countdown: true, startValues: new_time});
+    $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
+    timer.addEventListener('secondsUpdated', function (e) {
+        $('#timer_'+ id + ' .values').html(timer.getTimeValues().toString());
+    });
+
+    // this event listener needs to be CHANGED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    timer.addEventListener('targetAchieved', function (e) {
+        $('#timer_' + id + ' .values').html('TIME UP!!');
+        let msg = {roomId: roomId, ID:id};
+        socket.emit('timeUp', msg);
+        gameOverForBoard(msg);
+        timeUp=true;
+    });
+}
+
 // console.log(color)
 
 // var board;

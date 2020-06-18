@@ -1,7 +1,10 @@
 VERSION NUMBER:
--V 1.0.2
+-V 1.0.3
 
 DESCRIPTION:
+-V 1.0.3
+Fixed a bug in opponentTimers when fork, implemented the time increment function - Jason
+
 -V 1.0.2
 Updated the timer and game over part
 
