@@ -1,5 +1,8 @@
 // the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable
 var param = Array(4);
+//This variable contains the total number of boards where the game is over
+var gameOverBoardCount=0;
+
 getPara();
 console.log(param);
 // function that get parameters from the URL
@@ -35,6 +38,8 @@ var state = document.getElementById('state');
 var forkButton= document.getElementById('forkButton_1');
 var timeUp=false;
 var resigned= false;
+var isGameOver= false;
+
 var connect = function(){
     let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3];
     room.remove();
@@ -252,7 +257,10 @@ function updateStatus (id) {
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
     }
-    if(resigned){
+    if(isGameOver){
+        console.log("Game Over!")
+        status = 'Game over for board '+ id;
+    }else if(resigned){
         console.log("Resigned board= ", id)
         status = 'Game over, resigned by ' + moveColor
     }else if(timeUp){
@@ -386,7 +394,8 @@ function startTimer(id, timeObject) {
         $('#timer_' + id + ' .values').html('TIME UP!!');
         let msg = {roomId: roomId, ID:id};
         socket.emit('timeUp', msg);
-        gameOverForBoard(msg)
+        gameOverBoardCount++;
+        // gameOverForBoard(msg)
         timeUp=true;
     });
 }
@@ -407,15 +416,15 @@ function startOpponentTimer(id, timeObject) {
 }
 
 function gameOverForBoard(msg){
-    state.innerHTML = 'GAME OVER'+msg.ID;
     console.log(msg);
-    // socket.emit('gameOver', roomId)
-    if(msg.roomId===roomId){
+    if(gameOverBoardCount===totalGame){
+        state.innerHTML = 'GAME OVER!';
+    }
         console.log('id=',msg.ID);
         timers[msg.ID-1].stop();
+        timeUp=true;
         resetTimer(msg.ID);
         updateStatus(msg.ID);
-    }
 }
 
 function resetTimer(id) {
@@ -424,9 +433,17 @@ function resetTimer(id) {
 }
 
 socket.on('timeUp', function (msg) {
-    gameOverForBoard(msg);
-    timeUp=true;
-    updateStatus(msg.ID);
+    if(msg.roomId===roomId) {
+        gameOverForBoard(msg);
+    }
+});
+
+socket.on('gameOver', function (msg) {
+    if(msg.roomId===roomId) {
+        gameOverForBoard(msg);
+        isGameOver = true;
+        updateStatus(msg.ID);
+    }
 });
 
 function sendResignRequest(parentHtml){

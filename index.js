@@ -72,8 +72,13 @@ io.on('connection', function (socket) {
     });
 
     socket.on('timeUp', function (msg) {
-        socket.broadcast.emit('timeUp', msg);
+        io.emit('timeUp', msg);
         console.log("timeUp " + msg);
+    });
+
+    socket.on('gameOver', function (msg) {
+        io.emit('gameOver', msg);
+        console.log("gameOver " + msg);
     });
 
     socket.on('resign', function(msg){
