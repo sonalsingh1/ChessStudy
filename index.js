@@ -4,7 +4,6 @@ const socket = require('socket.io');
 const queues = new Map();
 
 const port = process.env.PORT || 8080;
-var totalRoom = 0;
 var app = express();
 const server = http.createServer(app);
 const io = socket(server);
@@ -18,6 +17,9 @@ var games = Array(100);
 for (let i = 0; i < 100; i++) {
     games[i] = {players: 0 , pid: [0 , 0]};
 }
+
+// array indicate if the room is full
+var isRoomFull = new Array(100).fill(false);
 
 
 app.get('/game', (req, res) => {
@@ -59,8 +61,12 @@ io.on('connection', function (socket) {
 
     socket.on('disconnect', function () {
         for (let i = 0; i < 100; i++) {
-            if (games[i].pid[0] == playerId || games[i].pid[1] == playerId)
+            if (games[i].pid[0] == playerId || games[i].pid[1] == playerId) {
                 games[i].players--;
+                if (games[i].players == 0){
+                    isRoomFull[i] = false;
+                }
+            }
         }
         console.log(playerId + ' disconnected');
 
@@ -91,19 +97,29 @@ io.on('connection', function (socket) {
 
     function match(playerId, qName){
         // empty queue
-        let roomId = totalRoom;
+        let roomId = getID();
         if (queues.get(qName).length === 0) {
-            queues.get(qName).push(playerId); // PlayerId is going to be replaced by the player ID extracted from DB
+            queues.get(qName).push({playerId, roomId}); // PlayerId is going to be replaced by the player ID extracted from DB
             socket.emit('player', { playerId, players: 1 ,color: 'white', roomId });
             // console.log("first player send " + roomId);
         } else { // already someone in the room
-            queues.get(qName).pop(); // pop the player on top
-            socket.emit('player', { playerId, players: 2 ,color: 'black', roomId });
-            // console.log("second player send " + roomId);
-            totalRoom++;
+            // the matching algo happens here, need a method that returns a playerId and a RoomId
+            let previousRoomId = queues.get(qName).pop().roomId; // pop the player on top
+            socket.emit('player', { playerId, players: 2 ,color: 'black', roomId: previousRoomId });
+            console.log('sending to room:' + previousRoomId);
         }
+
         console.log(queues);
 
+    }
+
+    function getID(){
+        for (let i = 0; i < isRoomFull.length ; i++) {
+            if (!isRoomFull[i]) {
+                isRoomFull[i] = true;
+                return i;
+            }
+        }
     }
     
 });
