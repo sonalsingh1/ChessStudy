@@ -388,12 +388,10 @@ function startTimer(id, timeObject) {
         $('#timer_'+ id + ' .values').html(timer.getTimeValues().toString());
     });
 
-    //TODO: gameOverBoardCount should be changed inside function
     timer.addEventListener('targetAchieved', function (e) {
         $('#timer_' + id + ' .values').html('TIME UP!!');
         let msg = {roomId: roomId, ID:id};
         socket.emit('timeUp', msg);
-        gameOverBoardCount++;
         timeUp=true;
     });
 }
@@ -415,8 +413,10 @@ function startOpponentTimer(id, timeObject) {
 
 // game over logic for a single board, when all board is over, send out total game over to the server.
 function gameOverForBoard(msg){
+    gameOverBoardCount++;
     if(gameOverBoardCount===totalGame){
-        socket.emit('totalGameOver', {roomId});
+        state.innerHTML = 'GAME OVER!';
+        document.querySelector('#DLButton').hidden = false;
     }
         // console.log('id=',msg.ID);
         timers[msg.ID-1].stop();
