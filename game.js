@@ -23,7 +23,9 @@ for (let i = 0; i <games.length; i++) {
 
 var boards = Array(games.length); // Same length boards array contains all game boards corresponding to games.
 var timers = Array(games.length); // Same length timers array contains all timers corresponding to each board.
-var opponentTimers = Array(games.length) // Same length timers array contains all opponent timers corresponding to each board.
+var opponentTimers = Array(games.length); // Same length timers array contains all opponent timers corresponding to each board.
+var gameOverBoards = Array(games.length).fill(false);
+
 var socket = io(); // calls the io.on('connection') function in server.
 
 var color = "white";
@@ -125,7 +127,8 @@ var onDragStart = function (source, piece) {
         (games[id-1].turn() === 'w' && piece.search(/^b/) !== -1) ||
         (games[id-1].turn() === 'b' && piece.search(/^w/) !== -1) ||
         (games[id-1].turn() === 'w' && color === 'black') ||
-        (games[id-1].turn() === 'b' && color === 'white') ) {
+        (games[id-1].turn() === 'b' && color === 'white') ||
+        (gameOverBoards[id-1])){
             return false;
     }
     // console.log({play, players});
@@ -298,7 +301,6 @@ function fork(id){
     let fen = games[id-1].fen();
     totalGame++;
     let new_id = totalGame;
-    console.log(new_id);
     var container = document.querySelector(".container");
     var new_div = document.querySelector("#game_"+id).cloneNode(true);
     var new_board = new_div.querySelector("#board_"+id);
@@ -310,15 +312,15 @@ function fork(id){
     new_div.querySelector("#status_"+id).setAttribute("id","status_"+new_id);
     new_div.querySelector("#pgn_"+id).setAttribute("id","pgn_"+new_id);
     new_div.querySelector("#forkButton_"+id).setAttribute("id","forkButton_"+new_id);
+    new_div.querySelector("#resignButton_"+id).setAttribute("id","resignButton_"+new_id);
+    new_div.querySelector("#drawButton_"+id).setAttribute("id","drawButton_"+new_id);
+
     new_board.setAttribute("id","board_"+new_id);
     new_div.setAttribute("class","game");
     new_div.setAttribute("id","game_"+new_id);
     new_timer.setAttribute("id", "timer_"+new_id);
     new_opponentTimer.setAttribute('id','opponentTimer_'+new_id);
     container.appendChild(new_div);
-
-    // NOTE: this example uses the chess.js library:
-    // https://github.com/jhlywa/chess.js
 
     // load the fen to new game
     games[new_id-1].load(fen);
@@ -359,10 +361,7 @@ function fork(id){
 }
 
 var sendForkRequest = function (parentHtml) {
-    // alert('clicked')
-    // console.log(parentHtml);
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
-    // console.log("this clicked id is " + id);
     let msg = {roomId: roomId, ID:id};
     socket.emit('fork', msg);
 
@@ -370,10 +369,10 @@ var sendForkRequest = function (parentHtml) {
 
     // update the fork count
     document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-    let allFork = document.querySelectorAll(".f_btn");
 
     // if fork available left is 0, disable all fork buttons
     if (param[3] === "0") {
+        let allFork = document.querySelectorAll(".f_btn");
         for (let i = 0; i < allFork.length; i++) {
             allFork[i].disabled = true;
         }
@@ -389,13 +388,12 @@ function startTimer(id, timeObject) {
         $('#timer_'+ id + ' .values').html(timer.getTimeValues().toString());
     });
 
-    // this event listener needs to be CHANGED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //TODO: gameOverBoardCount should be changed inside function
     timer.addEventListener('targetAchieved', function (e) {
         $('#timer_' + id + ' .values').html('TIME UP!!');
         let msg = {roomId: roomId, ID:id};
         socket.emit('timeUp', msg);
         gameOverBoardCount++;
-        // gameOverForBoard(msg)
         timeUp=true;
     });
 }
@@ -415,16 +413,25 @@ function startOpponentTimer(id, timeObject) {
     });
 }
 
+// game over logic for a single board, when all board is over, send out total game over to the server.
 function gameOverForBoard(msg){
-    console.log(msg);
     if(gameOverBoardCount===totalGame){
-        state.innerHTML = 'GAME OVER!';
+        socket.emit('totalGameOver', {roomId});
     }
-        console.log('id=',msg.ID);
+        // console.log('id=',msg.ID);
         timers[msg.ID-1].stop();
         timeUp=true;
-        resetTimer(msg.ID);
+        // resetTimer(msg.ID);
         updateStatus(msg.ID);
+        disableBoardButton(msg.ID);
+        gameOverBoards[msg.ID-1] = true;
+}
+
+// disable all buttons for the specific board
+function disableBoardButton(id){
+    document.querySelector('#forkButton_'+id).disabled = true;
+    document.querySelector('#resignButton_'+id).disabled = true;
+    document.querySelector('#drawButton_'+id).disabled = true;
 }
 
 function resetTimer(id) {
@@ -442,7 +449,6 @@ socket.on('gameOver', function (msg) {
     if(msg.roomId===roomId) {
         gameOverForBoard(msg);
         isGameOver = true;
-        updateStatus(msg.ID);
     }
 });
 
@@ -482,28 +488,30 @@ function increaseTime(id){
     let timer = timers[id-1];
     let timeIncrement = parseInt(param[2]);
     let new_time = timer.getTimeValues();
+    let new_min = new_time.minutes, new_sec = new_time.seconds;
     let s = new_time.seconds + timeIncrement;
     if (s >= 60) { //need increase in minutes
-        new_time.minutes += Math.floor(s / 60);
-        new_time.seconds = s % 60;
+        new_min += Math.floor(s / 60);
+        new_sec = s % 60;
     } else {
-        new_time.seconds += timeIncrement;
+        new_sec += timeIncrement;
     }
-    timer.start({countdown: true, startValues: new_time});
+    timer.stop();
+    timer.start({countdown: true, startValues: {minutes: new_min,
+                                                seconds: new_sec}});
+    console.log(timer.getTimeValues().toString());
     $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
-    timer.addEventListener('secondsUpdated', function (e) {
-        $('#timer_'+ id + ' .values').html(timer.getTimeValues().toString());
-    });
 
-    // this event listener needs to be CHANGED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    timer.addEventListener('targetAchieved', function (e) {
-        $('#timer_' + id + ' .values').html('TIME UP!!');
-        let msg = {roomId: roomId, ID:id};
-        socket.emit('timeUp', msg);
-        gameOverForBoard(msg);
-        timeUp=true;
-    });
 }
+
+// The entire game is over, including all boards.
+// Execute total game over logic for this client, change the state and show DL game button.
+socket.on('totalGameOver', function(msg){
+    if(msg.roomId === roomId) {
+        state.innerHTML = 'GAME OVER!';
+        document.querySelector('#DLButton').hidden = false;
+    }
+});
 
 // console.log(color)
 
