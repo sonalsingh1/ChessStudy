@@ -97,6 +97,10 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('opponentOfferDraw',msg)
     });
 
+    socket.on('drawAccepted', function(msg){
+        io.emit('drawAccepted', msg);
+    });
+
     function match(playerId, qName){
         // empty queue
         let roomId = getID();

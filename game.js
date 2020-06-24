@@ -53,12 +53,12 @@ var connect = function(){
 connect();
 
 socket.on('full', function (msg) {
-    if(roomId == msg)
+    if(roomId === msg)
         window.location.assign(window.location.href+ 'full.html');
 });
 
 socket.on('play', function (msg) {
-    if (msg == roomId) {
+    if (msg === roomId) {
         play = false;
         state.innerHTML = "Game in progress";
         // document.querySelector(".msg").hidden = true;
@@ -88,7 +88,7 @@ socket.on('play', function (msg) {
 });
 
 socket.on('move', function (msg) {
-    if (msg.room == roomId) {
+    if (msg.room === roomId) {
         let fork = document.querySelector("#forkButton_"+msg.boardId);
         games[msg.boardId-1].move(msg.move);
         boards[msg.boardId-1].position(games[msg.boardId-1].fen());
@@ -418,10 +418,7 @@ function gameOverForBoard(msg){
         state.innerHTML = 'GAME OVER!';
         document.querySelector('#DLButton').hidden = false;
     }
-        // console.log('id=',msg.ID);
         timers[msg.ID-1].stop();
-        timeUp=true;
-        // resetTimer(msg.ID);
         updateStatus(msg.ID);
         disableBoardButton(msg.ID);
         gameOverBoards[msg.ID-1] = true;
@@ -434,13 +431,10 @@ function disableBoardButton(id){
     document.querySelector('#drawButton_'+id).disabled = true;
 }
 
-function resetTimer(id) {
-    timers[id-1] = new easytimer.Timer();
-    timers[id-1].reset();
-}
 
 socket.on('timeUp', function (msg) {
     if(msg.roomId===roomId) {
+        timeUp=true;
         gameOverForBoard(msg);
     }
 });
@@ -458,14 +452,13 @@ function sendResignRequest(parentHtml){
     socket.emit('resign',msg);
     resigned=true;
     gameOverForBoard(msg);
-    // followed by the game over logic (losing side)
+    // TODO: followed by the game over logic (losing side)
 }
 
 socket.on("opponentResign", function(msg){
-    alert(msg);
     resigned= true;
     gameOverForBoard(msg);
-    // followed by the game over logic (winning side)
+    // TODO: followed by the game over logic (winning side)
 });
 
 function offerDraw(parentHtml) {
@@ -475,12 +468,21 @@ function offerDraw(parentHtml) {
 }
 
 socket.on('opponentOfferDraw', function(msg){
-    let id = msg.ID;
-    let re = confirm("Your opponent offered a draw on board #" + id + ". Do you accept?");
-    if (re === true){
-        // draw logic follows
-    } else {
-        // dont accept draw
+    if(roomId === msg.roomId) {
+        let id = msg.ID;
+        let re = confirm("Your opponent offered a draw on board #" + id + ". Do you accept?");
+        if (re === true) {
+            // draw logic follows
+            socket.emit('drawAccepted', msg);
+        } else {
+            // dont accept draw
+        }
+    }
+});
+
+socket.on('drawAccepted', function(msg){
+    if(roomId === msg.roomId){
+        gameOverForBoard(msg);
     }
 });
 
@@ -499,19 +501,10 @@ function increaseTime(id){
     timer.stop();
     timer.start({countdown: true, startValues: {minutes: new_min,
                                                 seconds: new_sec}});
-    console.log(timer.getTimeValues().toString());
     $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
 
 }
 
-// The entire game is over, including all boards.
-// Execute total game over logic for this client, change the state and show DL game button.
-socket.on('totalGameOver', function(msg){
-    if(msg.roomId === roomId) {
-        state.innerHTML = 'GAME OVER!';
-        document.querySelector('#DLButton').hidden = false;
-    }
-});
 
 // console.log(color)
 
