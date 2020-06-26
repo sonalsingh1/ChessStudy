@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+	<link rel="stylesheet" type="text/css" href="./profile.css">
+	<title>Top Ranking</title>
+	
+</head>
+<body>
+<div id="header">
+	<img class="logo" src="https://cdn.shopify.com/shopifycloud/hatchful-web/assets/6fcc76cfd1c59f44d43a485167fb3139.png" style="height: 100%;">
+</div>
+<div id="center">
+    <div id="sidebar-l">
+    	<h1>User Name: FakeUser123</h1> <br>
+    	<button class="side-l">New Game</button><br>
+    	<button class="side-l">Challenges</button><br>
+    	<button class="side-l">Profile/Statistics</button><br>
+    	<button class="side-l">Log Out</button><br>
+    </div>
+    <div id="main-wrapper">
+        <div id="main">
+        	<!-- The following code allows a wliding button between choosing CHESS and CHESS960, however it is complicate to communicate the data selected with backend, I deided to go with the radio button for version 1.0 and upgrade the UI in the later version. Please do not delete the following code! -->
+
+<!--         	<div class="top_row">
+	        	<div class="slide_btn">
+		        	CLASSIC
+					<label class="switch">
+					  <input type="checkbox">
+					  <span class="slider"></span>
+					</label>
+					CHESS960
+	        	</div>
+        	</div> -->
+        	<div class="game_type_btn">
+        		Choose A Game Type: <br>
+        		<input type="radio" name="game_type" value="chess" checked> CHESS&nbsp;&nbsp;
+        		<input type="radio" name="game_type" value="chess960"> CHESS960
+        	</div>
+        	<br>
+        	<div class="fork_btn">
+        		Choose A Fork Type: <br>
+        		<input type="radio" name="fork_type" value="0" checked> 0&nbsp;&nbsp;
+        		<input type="radio" name="fork_type" value="1"> 1&nbsp;&nbsp;
+        		<input type="radio" name="fork_type" value="2"> 2&nbsp;&nbsp;
+        	</div>
+        	<br>
+        	<div class="game_format_btn">
+        		Choose A Fork Type: <br>
+        		<input type="radio" name="format_type" value="bullet" checked> Bullet&nbsp;&nbsp;
+        		<input type="radio" name="format_type" value="blitz"> Blitz&nbsp;&nbsp;
+        		<input type="radio" name="format_type" value="rapid"> Rapid&nbsp;&nbsp;
+        		<input type="radio" name="format_type" value="long"> Long&nbsp;&nbsp;
+        	</div>
+        	<br>
+        	<button>Submit</button>
+        	<br><br>
+        	<table class="result">
+        		<tr>
+        			<th> </th>
+        			<th>ELO Rating</th>
+        		</tr>
+        		<tr>
+        			<th>#1</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#2</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#3</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#4</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#5</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#6</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#7</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#8</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#9</th>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>#10</th>
+        			<td>ELO</td>
+        		</tr>
+
+        	</table>
+</div>
+
+<div id="footer"></div>
+</body>
+</html>

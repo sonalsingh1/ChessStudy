@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+	<link rel="stylesheet" type="text/css" href="./profile.css">
+	<title>Profile</title>
+	
+</head>
+<body>
+<div id="header">
+	<img class="logo" src="https://cdn.shopify.com/shopifycloud/hatchful-web/assets/6fcc76cfd1c59f44d43a485167fb3139.png" style="height: 100%;">
+</div>
+<div id="center">
+    <div id="sidebar-l">
+    	<h1>User Name: FakeUser123</h1> <br>
+    	<button class="side-l">New Game</button><br>
+    	<button class="side-l">Challenges</button><br>
+    	<button class="side-l">Top Rankings</button><br>
+    	<button class="side-l">Log Out</button><br>
+    </div>
+    <div id="main-wrapper">
+        <div id="main">
+        	<!-- The following code allows a wliding button between choosing CHESS and CHESS960, however it is complicate to communicate the data selected with backend, I deided to go with the radio button for version 1.0 and upgrade the UI in the later version. Please do not delete the following code! -->
+
+<!--         	<div class="top_row">
+	        	<div class="slide_btn">
+		        	CLASSIC
+					<label class="switch">
+					  <input type="checkbox">
+					  <span class="slider"></span>
+					</label>
+					CHESS960
+	        	</div>
+        	</div> -->
+        	<h1>Email: FakeEmail@gmail.com</h1>
+        	<div class="game_type_btn">
+        		Choose A Game Type: <br>
+        		<input type="radio" name="game_type" value="chess" checked> CHESS&nbsp;&nbsp;
+        		<input type="radio" name="game_type" value="chess960"> CHESS960
+        	</div>
+        	<br>
+        	<table class="rating">
+        		<tr>
+        			<th> </th>
+        			<th>Bullet</th>
+        			<th>Blitz</th>
+        			<th>Rapid</th>
+        			<th>Long</th>
+        		</tr>
+        		<tr>
+        			<th>Fork 0</th>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>Fork 1</th>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        		</tr>
+        		<tr>
+        			<th>Fork 2</th>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        			<td>ELO</td>
+        		</tr>
+
+        	</table>
+</div>
+
+<div id="footer"></div>
+</body>
+</html>
