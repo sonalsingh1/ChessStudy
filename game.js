@@ -95,6 +95,7 @@ socket.on('move', function (msg) {
         console.log("moved with " + (msg.boardId-1));
         updateStatus(msg.boardId);
         timers[msg.boardId-1].start(); // resume the timer
+        increaseTime(msg.boardId,true); // increment opponent timer
         opponentTimers[msg.boardId-1].pause(); // pause the opponent timer
 
         // if there still more fork for the user
@@ -156,7 +157,7 @@ var onDrop = function (source, target) {
     else
         updateStatus(id);
         socket.emit('move', { move: move, board: games[0].fen(), room: roomId, boardId: this.ID});
-        increaseTime(id);
+        increaseTime(id,false);
         timers[id-1].pause(); // pause the timer
         opponentTimers[id-1].start();
         fork.disabled = true; // disable the fork
@@ -486,8 +487,13 @@ socket.on('drawAccepted', function(msg){
     }
 });
 
-function increaseTime(id){
-    let timer = timers[id-1];
+function increaseTime(id,oppo){
+    let timer;
+
+    if(oppo === false) {
+        timer = timers[id - 1];
+    } else timer = opponentTimers[id-1];
+
     let timeIncrement = parseInt(param[2]);
     let new_time = timer.getTimeValues();
     let new_min = new_time.minutes, new_sec = new_time.seconds;
