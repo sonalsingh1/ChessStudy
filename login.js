@@ -12,12 +12,17 @@ function isUserPresent(username,password) {
 var signIn = function(){
     var username= document.getElementById("userID").value;
     var password= document.getElementById("password").value;
-    if (isUserPresent(username, password)) {
-        signedIn = true;
-    } else {
-        signedIn = false;
-        console.log("No such user! Incorrect Username!")
-    }
+    // if (isUserPresent(username, password)) {
+    //     signedIn = true;
+    // } else {
+    //     signedIn = false;
+    //     console.log("No such user! Incorrect Username!")
+    // }
+    let data = {
+      userName : username,
+      passWord : password
+    };
+    location.href = "/login?" + $.param(data);
 
 };
 

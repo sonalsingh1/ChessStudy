@@ -23,7 +23,6 @@ var isRoomFull = new Array(100).fill(false);
 
 
 app.get('/game', (req, res) => {
-    console.log(req.query);
     let qName = req.query.gameType + "_" + req.query.startTime + "_" + req.query.timeIncrement + "_" + req.query.forkAvailable;
     if (!queues.has(qName)){
         queues.set(qName,[]);
@@ -31,10 +30,49 @@ app.get('/game', (req, res) => {
     res.sendFile(__dirname + '/games.html');
 });
 
-app.get('/', (req, res) => {
+app.get('/homepage', (req, res) => {
     res.sendFile(__dirname + '/homepage.html');
-    // console.log(__dirname + '/homepage.html');
 });
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/login.html');
+});
+
+app.get('/login', function(request, response) {
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "950824",
+        database: "chessstudyschema"
+    });
+
+    var username = request.query.userName;
+    var password = request.query.passWord;
+
+    console.log(password);
+    var sql = 'select * from player where username="'+username+'" and password="'+password+'";';
+    console.log(sql);
+
+    con.connect(function(err) {
+        if (err) throw err;
+        let result;
+        username="johnHeinz1";
+        password="John1@123";
+        con.query('select * from player where username="'+username+'" and password="'+password+'";', function (err, result) {
+            if (err) throw err;
+            console.log(result);
+            console.log(result.length);
+        });
+
+        // Object.keys(result).forEach(function(key) {
+        //   var row = result[key];
+        //   console.log(row.name)
+        // });
+    });
+});
+
+
 
 io.on('connection', function (socket) {
     var color;
