@@ -29,7 +29,6 @@ app.get('/game', (req, res) => {
         queues.set(qName,[]);
     }
     res.sendFile(__dirname + '/games.html');
-
 });
 
 app.get('/', (req, res) => {
@@ -127,7 +126,50 @@ io.on('connection', function (socket) {
             }
         }
     }
-    
+
+    function fetchPlayerDetails(player_ID){
+        var mysql = require('mysql');
+        var con = mysql.createConnection({
+            host: "localhost",
+            user: "ChessUser",
+            password: "Queen123",
+            database: "chessstudyschema"
+        });
+
+        con.connect(function(err) {
+            if (err) throw err;
+            var sql = "SELECT * from player WHERE Player_ID="+player_ID+")";
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+                console.log(result.affectedRows + " record(s) updated");
+            });
+        });
+    }
+
+    /**
+     * This function updates the ELO Rating after the game is over for the player.
+     * Input: Player ID
+     * Output: All 4 types of ELO Ratings
+     */
+    function updateELORating(player_ID,game_type,new_rating){
+        var mysql = require('mysql');
+        var con = mysql.createConnection({
+            host: "localhost",
+            user: "ChessUser",
+            password: "Queen123",
+            database: "chessstudyschema"
+        });
+
+        con.connect(function(err) {
+            if (err) throw err;
+            var sql = "UPDATE elo_rating SET"+ game_type+"="+new_rating+" WHERE ELO_ID IN (SELECT ELO_ID from player WHERE Player_ID="+player_ID+")";
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+                console.log(result.affectedRows + " record(s) updated");
+            });
+        });
+    }
+
 });
 
 

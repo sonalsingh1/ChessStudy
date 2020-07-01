@@ -34,13 +34,13 @@
 	<img class="logo" src="https://cdn.shopify.com/shopifycloud/hatchful-web/assets/6fcc76cfd1c59f44d43a485167fb3139.png" style="width: 250px">
 	<h1>Login</h1>
 	<label class="lb">User Name:</label>
-	<input class="in" type="text" placeholder="UserID" name="userID">
+	<input class="in" type="text" placeholder="UserID" name="userID" id="userID">
 	<br>
 	<label class="lb">Password:</label>
-	<input class="in" type="text" placeholder="Password" name="password">
+	<input class="in" type="text" placeholder="Password" name="password" id="password">
 	<br>
-	<button style="margin: 10px; width: 100px">Sign In</button>
-	<button style="margin: 10px; width: 100px">Sign Up</button>
+	<button style="margin: 10px; width: 100px"  onclick="signIn()">Sign In </button>
+	<button style="margin: 10px; width: 100px" onclick="signUp()">Sign Up</button>
 	<br>
 	<a style="margin: 10px" href="./forgot.html"> Forgot UserName/Password</a>
 	<br>

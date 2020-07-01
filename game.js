@@ -2,7 +2,7 @@
 var param = Array(4);
 //This variable contains the total number of boards where the game is over
 var gameOverBoardCount=0;
-
+let signedIn=false;
 getPara();
 console.log(param);
 // function that get parameters from the URL
@@ -418,6 +418,7 @@ function gameOverForBoard(msg){
     if(gameOverBoardCount===totalGame){
         state.innerHTML = 'GAME OVER!';
         document.querySelector('#DLButton').hidden = false;
+        socket.emit('totalGameOver',roomId);
     }
         timers[msg.ID-1].stop();
         updateStatus(msg.ID);
@@ -489,7 +490,6 @@ socket.on('drawAccepted', function(msg){
 
 function increaseTime(id,oppo){
     let timer;
-
     if(oppo === false) {
         timer = timers[id - 1];
     } else timer = opponentTimers[id-1];
@@ -511,7 +511,41 @@ function increaseTime(id,oppo){
 
 }
 
+// The entire game is over, including all boards.
+// Execute total game over logic for this client, change the state and show DL game button.
+socket.on('totalGameOver', function(msg){
+    if(msg.roomId === roomId) {
+        state.innerHTML = 'GAME OVER!';
+        document.querySelector('#DLButton').hidden = false;
+    }
+});
 
+//TODO: Calls server to check if username and password is correct
+function isUserPresent(username,password) {
+    socket.emit('checkUserSignIn', username,password);
+    return false;
+} 
+
+
+//TODO: give call to database and fetch User information
+var signIn = function(){
+    var username= document.getElementById("userID").value;
+    var password= document.getElementById("password").value;
+    if (isUserPresent(username, password)) {
+        signedIn = true;
+    } else {
+        signedIn = false;
+        console.log("No such user! Incorrect Username!")
+    }
+
+};
+
+var signUp = function(){
+    var username= document.getElementById("userID").value;
+    var password= document.getElementById("password").value;
+
+
+};
 // console.log(color)
 
 // var board;

@@ -13,13 +13,10 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" 
   integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
     crossorigin="anonymous"></script>
-
   <script src="./easytimer/easytimer.min.js"></script>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
   <script src="./chessboard/js/chessboard-0.3.0.min.js"></script>
   <link rel="stylesheet" href="./chessboard/css/chessboard-0.3.0.min.css">
-
   <style>
     .number::-webkit-inner-spin-button, 
     .number::-webkit-outer-spin-button { 
@@ -33,11 +30,8 @@
       margin: 4%
     }
   </style>
-
 </head>
-
 <body>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <!-- <script src="./index.js"></script> -->
@@ -49,16 +43,13 @@
   <div id="forkCount" hidden="true">
   <strog></strog>
   </div>
-  <button id="DLButton" class="btn btn-success" hidden="true">DL Game</button>
-
+  <button id="DLButton" class="btn btn-success" hidden="true" onclick="downloadGame()">DL Game</button>
   <div class="container">
     <div class="game" id="game_1">
         <div id="opponentTimer_1" style="text-align: center">
           <div class="values"></div>
         </div>
-
         <div class="board" id="board_1" style="width: 300px; margin: auto"></div>
-
         <div id="timer_1" style="text-align: center">
           <div class="values"></div>
         </div>
@@ -76,10 +67,7 @@
               </div>
             </div>
           </form>
-
-
           <br>
-
           <div class="hidden" hidden="true">
           <label>Status:</label>
           <div id="status_1"></div>
