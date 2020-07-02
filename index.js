@@ -49,26 +49,21 @@ app.get('/login', function(request, response) {
 
     var username = request.query.userName;
     var password = request.query.passWord;
-
-    console.log(password);
     var sql = 'select * from player where username="'+username+'" and password="'+password+'";';
     console.log(sql);
 
     con.connect(function(err) {
         if (err) throw err;
-        let result;
-        username="johnHeinz1";
-        password="John1@123";
-        con.query('select * from player where username="'+username+'" and password="'+password+'";', function (err, result) {
+        con.query(sql, function (err, result) {
             if (err) throw err;
             console.log(result);
-            console.log(result.length);
+            if(result.length > 0){ // user exists
+                response.redirect('/homepage');
+            } else { // no user found
+                response.redirect('/?success=false');
+            }
+            response.end();
         });
-
-        // Object.keys(result).forEach(function(key) {
-        //   var row = result[key];
-        //   console.log(row.name)
-        // });
     });
 });
 

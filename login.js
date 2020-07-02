@@ -12,12 +12,6 @@ function isUserPresent(username,password) {
 var signIn = function(){
     var username= document.getElementById("userID").value;
     var password= document.getElementById("password").value;
-    // if (isUserPresent(username, password)) {
-    //     signedIn = true;
-    // } else {
-    //     signedIn = false;
-    //     console.log("No such user! Incorrect Username!")
-    // }
     let data = {
       userName : username,
       passWord : password
@@ -29,6 +23,13 @@ var signIn = function(){
 var signUp = function(){
     var username= document.getElementById("userID").value;
     var password= document.getElementById("password").value;
-
-
 };
+
+let loc = location.href.split('?');
+if (loc.length > 1){
+    let suc = loc[1].split('=')[1];
+    if(suc === 'false'){
+        $('#msg').text('Invalid Username and/or Password!');
+        $('#msg').css('color','red');
+    }
+}
