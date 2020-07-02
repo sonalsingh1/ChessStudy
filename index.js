@@ -42,25 +42,26 @@ app.get('/login', function(request, response) {
     var mysql = require('mysql');
     var con = mysql.createConnection({
         host: "localhost",
-        user: "root",
-        password: "950824",
+        user: "ChessUser",//"root",
+        password: "Queen123", //"950824",
         database: "chessstudyschema"
     });
-
     var username = request.query.userName;
     var password = request.query.passWord;
+    console.log(password);
     var sql = 'select * from player where username="'+username+'" and password="'+password+'";';
     console.log(sql);
-
     con.connect(function(err) {
         if (err) throw err;
-        con.query(sql, function (err, result) {
+        let result;
+        con.query('select * from player where username="'+username+'" and password="'+password+'";', function (err, result) {
             if (err) throw err;
             console.log(result);
-            if(result.length > 0){ // user exists
+            console.log(result.length);
+            if (result.length > 0) {
                 response.redirect('/homepage');
-            } else { // no user found
-                response.redirect('/?success=false');
+            } else {
+                response.send('Incorrect Username and/or Password!');
             }
             response.end();
         });

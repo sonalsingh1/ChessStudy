@@ -1,5 +1,7 @@
 
+
 let signedIn=false;
+
 
 //TODO: Calls server to check if username and password is correct
 function isUserPresent(username,password) {
@@ -16,7 +18,9 @@ var signIn = function(){
       userName : username,
       passWord : password
     };
+    // console.log("Here");
     location.href = "/login?" + $.param(data);
+    // console.log("After");
 
 };
 
