@@ -25,8 +25,7 @@ var signIn = function(){
 };
 
 var signUp = function(){
-    var username= document.getElementById("userID").value;
-    var password= document.getElementById("password").value;
+
 };
 
 let loc = location.href.split('?');

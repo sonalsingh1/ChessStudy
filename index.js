@@ -42,8 +42,8 @@ app.get('/login', function(request, response) {
     var mysql = require('mysql');
     var con = mysql.createConnection({
         host: "localhost",
-        user: "ChessUser",//"root",
-        password: "Queen123", //"950824",
+        user: "root",//"root",
+        password: "950824", //"950824",
         database: "chessstudyschema"
     });
     var username = request.query.userName;
@@ -60,8 +60,8 @@ app.get('/login', function(request, response) {
             console.log(result.length);
             if (result.length > 0) {
                 response.redirect('/homepage');
-            } else {
-                response.send('Incorrect Username and/or Password!');
+            } else { // no user found
+                response.redirect('/?success=false');
             }
             response.end();
         });
