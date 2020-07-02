@@ -42,8 +42,8 @@ app.get('/login', function(request, response) {
     var mysql = require('mysql');
     var con = mysql.createConnection({
         host: "localhost",
-        user: "root",//"root",
-        password: "950824", //"950824",
+        user: "ChessUser",//"root",
+        password: "Queen123", //"950824",
         database: "chessstudyschema"
     });
     var username = request.query.userName;
