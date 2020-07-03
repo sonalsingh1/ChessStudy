@@ -24,15 +24,15 @@ var signIn = function(){
 
 };
 
-var signUp = function(){
-
-};
 
 let loc = location.href.split('?');
 if (loc.length > 1){
-    let suc = loc[1].split('=')[1];
-    if(suc === 'false'){
+    let status = loc[1].split('=')[1];
+    if(status === 'false'){
         $('#msg').text('Invalid Username and/or Password!');
+        $('#msg').css('color','red');
+    } else if (status === 'created'){
+        $('#msg').text('User successfully created! Please Log In.');
         $('#msg').css('color','red');
     }
 }

@@ -38,6 +38,10 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/login.html');
 });
 
+app.get('/createuser',(req,res) => {
+   res.sendFile(__dirname + '/signup.html');
+});
+
 app.get('/login', function(request, response) {
     var mysql = require('mysql');
     var con = mysql.createConnection({
@@ -48,24 +52,64 @@ app.get('/login', function(request, response) {
     });
     var username = request.query.userName;
     var password = request.query.passWord;
-    console.log(password);
-    var sql = 'select * from player where username="'+username+'" and password="'+password+'";';
-    console.log(sql);
-    con.connect(function(err) {
-        if (err) throw err;
-        let result;
-        con.query('select * from player where username="'+username+'" and password="'+password+'";', function (err, result) {
+    if(username && password) {
+        var sql = 'select * from player where username="' + username + '" and password="' + password + '";';
+        console.log(sql);
+        con.connect(function (err) {
             if (err) throw err;
-            console.log(result);
-            console.log(result.length);
-            if (result.length > 0) {
-                response.redirect('/homepage');
-            } else { // no user found
-                response.redirect('/?success=false');
-            }
-            response.end();
+            let result;
+            con.query('select * from player where username="' + username + '" and password="' + password + '";', function (err, result) {
+                if (err) throw err;
+                console.log(result);
+                console.log(result.length);
+                if (result.length > 0) {
+                    response.redirect(`/homepage?username=${username}`);
+                } else { // no user found
+                    response.redirect('/?status=false');
+                }
+                response.end();
+            });
         });
+    }
+});
+
+
+app.get('/signup', function(request,response){
+    let mysql = require('mysql');
+    let con = mysql.createConnection({
+        host: "localhost",
+        user: "ChessUser",//"root",
+        password: "Queen123", //"950824",
+        database: "chessstudyschema"
     });
+    let username = request.query.userName;
+    let password = request.query.passWord;
+    let email = request.query.email;
+
+    con.connect(function (err) {
+        if (err) throw err;
+        let sql = `SELECT Player_ID FROM player WHERE Username="${username}";`;
+        console.log(sql);
+        con.query(sql,function (err, result) {
+            if (err) {
+                con.rollback(function(){
+                    throw err;
+                });
+            }
+            if (result.length === 0) { // no user found
+                let id = create_UUID();
+                sql = `INSERT INTO player VALUES ("${id}","${username}","${password}","${email}");`;
+                con.query(sql, function (err, result) {
+                    if (err) throw err;
+                    response.redirect('/?status=created');
+                });
+                con.commit();
+            } else { // user already existed
+                response.redirect('/createuser?status=existed');
+            }
+        })
+    })
+
 });
 
 
@@ -206,7 +250,15 @@ io.on('connection', function (socket) {
 
 });
 
-
+function create_UUID(){
+    var dt = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (dt + Math.random()*16)%16 | 0;
+        dt = Math.floor(dt/16);
+        return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+    });
+    return uuid;
+}
 
 server.listen(port);
 console.log('Connected');

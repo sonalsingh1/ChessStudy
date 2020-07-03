@@ -31,21 +31,27 @@
 	</style>
 </head>
 <body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<img class="logo" src="https://cdn.shopify.com/shopifycloud/hatchful-web/assets/6fcc76cfd1c59f44d43a485167fb3139.png" style="width: 250px">
 	<h1>Sign Up</h1>
+	<label class="lb">Username:</label>
+	<input id='userID' class="in" type="text" placeholder="UserID" name="userID">
+	<br>
 	<label class="lb">Email:</label>
-	<input class="in" type="text" placeholder="UserID" name="userID">
+	<input id="email" class="in" type="text" placeholder="Email" name="email">
 	<br>
 	<label class="lb">Password:</label>
-	<input class="in" type="text" placeholder="Password" name="password">
+	<input id="password" class="in" type="text" placeholder="Password" name="password">
 	<br>
-	<button style="margin: 10px; width: 100px">Confirm</button>
-	<button style="margin: 10px; width: 100px">Cancle</button>
+	<button style="margin: 10px; width: 100px" onclick="signUp()">Confirm</button>
+	<button style="margin: 10px; width: 100px" onclick="location.href='./'">Cancle</button>
 	<br>
 	<br>
 	<br>
-	<label class="console">This is a place to display console message.</label>
+	<label id="msg" class="console">This is a place to display console message.</label>
 	<br><br><br><br>
 	<div class="description">some description</div>
+
+	<script src="./signup.js"></script>
 </body>
 </html>

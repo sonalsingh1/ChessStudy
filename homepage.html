@@ -15,7 +15,7 @@
 </div>
 <div id="center">
     <div id="sidebar-l">
-    	<h1>User Name: FakeUser123</h1> <br>
+    	<h1 id="user">User Name: FakeUser123</h1> <br>
     	<button class="side-l">Profile/Statistics</button><br>
     	<button class="side-l">Challenges</button><br>
     	<button class="side-l">Top Rankings</button><br>
@@ -23,19 +23,6 @@
     </div>
     <div id="main-wrapper">
         <div id="main">
-        	<!-- The following code allows a wliding button between choosing CHESS and CHESS960, however it is complicate to communicate the data selected with backend, I deided to go with the radio button for version 1.0 and upgrade the UI in the later version. Please do not delete the following code! -->
-
-<!--         	<div class="top_row">
-	        	<div class="slide_btn">
-		        	CLASSIC
-					<label class="switch">
-					  <input type="checkbox">
-					  <span class="slider"></span>
-					</label>
-					CHESS960
-	        	</div>
-        	</div> -->
-
 
         	<div class="game_type_btn">
         		Choose A Game Type: <br>
@@ -89,24 +76,6 @@
         	</div>
         </div>
     </div>
-	<script>
-		function startPlay() {
-			let btn = $('input[name="style_time"]:checked').val().split("_");
-			let gameType = btn[0];
-			btn = btn[1].split("+");
-			let startTime = btn[0];
-			btn = btn[1].split("*");
-			let timeIncrement = btn[0];
-			let forkAvailable = btn[1];
-			let data = {
-				gameType: gameType,
-				startTime: startTime,
-				timeIncrement: timeIncrement,
-				forkAvailable: forkAvailable
-			};
-			location.href = "/game?" + $.param(data);
-		}
-	</script>
     <div id="sidebar-r">
     	<button id="play" onclick="startPlay()"><strong>Play</strong></button> <br>
     	<button id="challenge">Challenge</button> <br>
@@ -115,5 +84,7 @@
 </div>
 
 <div id="footer"></div>
+
+<script src="./homepage.js"></script>
 </body>
 </html>
