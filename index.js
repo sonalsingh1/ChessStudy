@@ -60,8 +60,6 @@ app.get('/login', function(request, response) {
             let result;
             con.query('select * from player where username="' + username + '" and password="' + password + '";', function (err, result) {
                 if (err) throw err;
-                console.log(result);
-                console.log(result.length);
                 if (result.length > 0) {
                     response.redirect(`/homepage?username=${username}`);
                 } else { // no user found
@@ -89,7 +87,6 @@ app.get('/signup', function(request,response){
     con.connect(function (err) {
         if (err) throw err;
         let sql = `SELECT Player_ID FROM player WHERE Username="${username}";`;
-        console.log(sql);
         con.query(sql,function (err, result) {
             if (err) {
                 con.rollback(function(){
@@ -128,7 +125,6 @@ io.on('connection', function (socket) {
 
     socket.on('move', function (msg) {
         socket.broadcast.emit('move', msg);
-        // console.log(msg);
     });
 
     socket.on('play', function (msg) {
