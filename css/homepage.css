@@ -13,7 +13,7 @@
 			font-weight: bold;
 		}
 		.side-l{
-			background-color: #9d03fc; /* Green */
+			background-color: #9d03fc; /* purple */
 			width: 80%;
 			border: none;
 			color: white;
@@ -23,6 +23,8 @@
 			display: inline-block;
 			font-size: 16px;
 			margin-bottom:5px;
+			position: relative;
+			z-index: 10;
 		}
 		
 		.row{
