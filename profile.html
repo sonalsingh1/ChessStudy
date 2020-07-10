@@ -7,16 +7,17 @@
 	
 </head>
 <body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <div id="header">
 	<img class="logo" src="https://cdn.shopify.com/shopifycloud/hatchful-web/assets/6fcc76cfd1c59f44d43a485167fb3139.png" style="height: 100%;">
 </div>
 <div id="center">
     <div id="sidebar-l">
-    	<h1>User Name: FakeUser123</h1> <br>
-    	<button class="side-l">New Game</button><br>
-    	<button class="side-l">Challenges</button><br>
-    	<button class="side-l">Top Rankings</button><br>
-    	<button class="side-l">Log Out</button><br>
+    	<h1 id="user">User Name: FakeUser123</h1> <br>
+    	<button class="side-l" id="newGame" onclick="newGameOnClick()">New Game</button><br>
+		<button class="side-l" id="challenges" onclick="displayChallenges()">Challenges</button><br>
+		<button class="side-l" id="Rankings" onclick="displayTopRankings()">Top Rankings</button><br>
+		<button class="side-l" id="logOut" onclick="onLogOut()">Log Out</button><br>
     </div>
     <div id="main-wrapper">
         <div id="main">
@@ -32,11 +33,11 @@
 					CHESS960
 	        	</div>
         	</div> -->
-        	<h1>Email: FakeEmail@gmail.com</h1>
+        	<h1 id="email">Email: FakeEmail@gmail.com</h1>
         	<div class="game_type_btn">
         		Choose A Game Type: <br>
         		<input type="radio" name="game_type" value="chess" checked> CHESS&nbsp;&nbsp;
-        		<input type="radio" name="game_type" value="chess960"> CHESS960
+        		<input type="radio" name="game_type" value="chess960" > CHESS960
         	</div>
         	<br>
         	<table class="rating">
@@ -49,29 +50,31 @@
         		</tr>
         		<tr>
         			<th>Fork 0</th>
-        			<td>ELO</td>
-        			<td>ELO</td>
-        			<td>ELO</td>
-        			<td>ELO</td>
+        			<td id="fork0bulletELO">ELO</td>
+        			<td id="fork0blitzELO">ELO</td>
+        			<td id="fork0rapidELO">ELO</td>
+        			<td id="fork0longELO">ELO</td>
         		</tr>
         		<tr>
-        			<th>Fork 1</th>
-        			<td>ELO</td>
-        			<td>ELO</td>
-        			<td>ELO</td>
-        			<td>ELO</td>
+					<th>Fork 1</th>
+					<td id="fork1bulletELO">ELO</td>
+					<td id="fork1blitzELO">ELO</td>
+					<td id="fork1rapidELO">ELO</td>
+					<td id="fork1longELO">ELO</td>
         		</tr>
         		<tr>
-        			<th>Fork 2</th>
-        			<td>ELO</td>
-        			<td>ELO</td>
-        			<td>ELO</td>
-        			<td>ELO</td>
+					<th>Fork 2</th>
+					<td id="fork2bulletELO">ELO</td>
+					<td id="fork2blitzELO">ELO</td>
+					<td id="fork2rapidELO">ELO</td>
+					<td id="fork2longELO">ELO</td>
         		</tr>
 
         	</table>
+		</div>
+	</div>
 </div>
-
 <div id="footer"></div>
+<script src="./profile.js"></script>
 </body>
 </html>

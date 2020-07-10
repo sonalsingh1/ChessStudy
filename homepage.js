@@ -22,33 +22,33 @@ if(username) {
 }
 
 function displayPlayerProfile() {
-    var username= "johnHeinz1";//urlParams.get('username');////document.getElementById("userID").value;
+    var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
     console.log("****PLAYER PROFILE***");
     console.log(username);
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "ChessUser",
-        password: "Queen123",
-        database: "chessstudyschema"
-    });
-    con.connect(function(err) {
-        if (err) throw err;
-        var sql = "SELECT * from elo_rating WHERE ELO_ID="+username+")";
-        con.query(sql, function (err, result) {
-            if (err) throw err;
-            console.log("****PLAYER PROFILE***");
-            console.log(result);
-        });
-    });
+    let data = {
+        username: username
+    };
+    location.href = "/profile?" + $.param(data);
 }
 
 function displayChallenges() {
-
+    var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
+    console.log("****PLAYER CHALLENGES***");
+    console.log(username);
+    let data = {
+        username: username
+    };
+    location.href = "/challenges?" + $.param(data);
 }
 
 function displayTopRankings() {
-
+    var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
+    console.log("****TOP RANKINGS***");
+    console.log(username);
+    let data = {
+        username: username
+    };
+    location.href = "/topRankings?" + $.param(data);
 }
 
 function onLogOut() {

@@ -42,6 +42,10 @@ app.get('/createuser',(req,res) => {
    res.sendFile(__dirname + '/signup.html');
 });
 
+app.get('/profilePage',(req,res) => {
+    res.sendFile(__dirname + '/profile.html');
+});
+
 app.get('/login', function(request, response) {
     var mysql = require('mysql');
     var con = mysql.createConnection({
@@ -106,10 +110,55 @@ app.get('/signup', function(request,response){
             }
         })
     })
-
 });
 
+app.get('/profile', function(request, response) {
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "ChessUser",//"root",
+        password: "Queen123", //"950824",
+        database: "chessstudyschema"
+    });
+    var username = request.query.username;
+    if(username) {
+        con.connect(function(err) {
+            if (err) throw err;
+            var sql = 'SELECT * from elo_rating WHERE ELO_ID="'+username+'";';
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+                if(result.length>0) {
+                    console.log("****PLAYER PROFILE***");
+                    console.log(result);
+                    // response.setAttribute("result",result);
+                    let data = {
+                        username: username,
+                        Blitz_Chess: result[0].Blitz_Chess,
+                        Bullet_Chess:result[0].Bullet_Chess,
+                        Rapid_Chess:result[0].Rapid_Chess,
+                        Long_Chess:result[0].Long_Chess,
+                        Blitz_Chess960: result[0].Blitz_Chess960,
+                        Bullet_Chess960: result[0].Bullet_Chess960,
+                        Rapid_Chess960: result[0].Rapid_Chess960,
+                        Long_Chess960: result[0].Long_Chess960
+                    };
+                    console.log(data);
+                    response.redirect(`/profilePage?username=${username}&Blitz_Chess=${data.Blitz_Chess}&Bullet_Chess=${data.Bullet_Chess}&Rapid_Chess=${data.Rapid_Chess}&Long_Chess=${data.Long_Chess}&Blitz_Chess960=${data.Blitz_Chess960}&Bullet_Chess960=${data.Bullet_Chess960}&Rapid_Chess960=${data.Rapid_Chess960}&Long_Chess960=${data.Long_Chess960}`);
+                    // response.redirect(`/profilePage?data=${data}`);
+                    // response.sendFile(__dirname + '/profile.html');
+                    // localStorage.setItem("result", result);
+                }
+            });
+        });
+    }
+});
+app.get('/challenges', function(request, response){
+    // response.sendFile(__dirname + '/challenges.html');
+});
 
+app.get('/topRankings', function(request, response){
+    response.sendFile(__dirname + '/top_ranking.html');
+});
 
 io.on('connection', function (socket) {
     var color;
@@ -201,7 +250,7 @@ io.on('connection', function (socket) {
         }
     }
 
-    function fetchPlayerDetails(player_ID){
+    function fetchPlayerDetails(username){
         var mysql = require('mysql');
         var con = mysql.createConnection({
             host: "localhost",
@@ -212,7 +261,7 @@ io.on('connection', function (socket) {
 
         con.connect(function(err) {
             if (err) throw err;
-            var sql = "SELECT * from player WHERE Player_ID="+player_ID+")";
+            var sql = "SELECT * from player WHERE username="+username+")";
             con.query(sql, function (err, result) {
                 if (err) throw err;
                 console.log(result.affectedRows + " record(s) updated");
