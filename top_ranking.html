@@ -13,11 +13,11 @@
 </div>
 <div id="center">
     <div id="sidebar-l">
-    	<h1>User Name: FakeUser123</h1> <br>
-    	<button class="side-l">New Game</button><br>
-    	<button class="side-l">Challenges</button><br>
-    	<button class="side-l">Profile/Statistics</button><br>
-    	<button class="side-l">Log Out</button><br>
+    	<h1 id="user">User Name: FakeUser123</h1> <br>
+		<button class="side-l" id="newGame" onclick="newGameOnClick()">New Game</button><br>
+		<button class="side-l" id="challenges" onclick="displayChallenges()">Challenges</button><br>
+		<button class="side-l" id="profile" onclick="displayPlayerProfile()">Profile/Statistics</button><br>
+		<button class="side-l" id="logOut" onclick="onLogOut()">Log Out</button><br>
     </div>
     <div id="main-wrapper">
         <div id="main">
@@ -47,14 +47,14 @@
         	</div>
         	<br>
         	<div class="game_format_btn">
-        		Choose A Fork Type: <br>
+        		Choose A Format Type: <br>
         		<input type="radio" name="format_type" value="bullet" checked> Bullet&nbsp;&nbsp;
         		<input type="radio" name="format_type" value="blitz"> Blitz&nbsp;&nbsp;
         		<input type="radio" name="format_type" value="rapid"> Rapid&nbsp;&nbsp;
         		<input type="radio" name="format_type" value="long"> Long&nbsp;&nbsp;
         	</div>
         	<br>
-        	<button>Submit</button>
+        	<button onclick="getTopRanks()">Submit</button>
         	<br><br>
         	<table class="result">
         		<tr>
@@ -63,43 +63,43 @@
         		</tr>
         		<tr>
         			<th>#1</th>
-        			<td>ELO</td>
+        			<td id="rank1">ELO</td>
         		</tr>
         		<tr>
         			<th>#2</th>
-        			<td>ELO</td>
+        			<td id="rank2">ELO</td>
         		</tr>
         		<tr>
         			<th>#3</th>
-        			<td>ELO</td>
+        			<td id="rank3">ELO</td>
         		</tr>
         		<tr>
         			<th>#4</th>
-        			<td>ELO</td>
+        			<td id="rank4">ELO</td>
         		</tr>
         		<tr>
         			<th>#5</th>
-        			<td>ELO</td>
+        			<td id="rank5">ELO</td>
         		</tr>
         		<tr>
         			<th>#6</th>
-        			<td>ELO</td>
+        			<td id="rank6">ELO</td>
         		</tr>
         		<tr>
         			<th>#7</th>
-        			<td>ELO</td>
+        			<td id="rank7">ELO</td>
         		</tr>
         		<tr>
         			<th>#8</th>
-        			<td>ELO</td>
+        			<td id="rank8">ELO</td>
         		</tr>
         		<tr>
         			<th>#9</th>
-        			<td>ELO</td>
+        			<td id="rank9">ELO</td>
         		</tr>
         		<tr>
         			<th>#10</th>
-        			<td>ELO</td>
+        			<td id="rank10">ELO</td>
         		</tr>
 
         	</table>
@@ -107,5 +107,6 @@
 	</div>
 </div>
 <div id="footer"></div>
+<script src="./top_ranking.js"></script>
 </body>
 </html>

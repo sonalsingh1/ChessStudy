@@ -112,15 +112,21 @@ app.get('/signup', function(request,response){
     })
 });
 
+var playerDetails;
 app.get('/profile', function(request, response) {
     var mysql = require('mysql');
+    let username = request.query.username;
+    let password = request.query.password;
+    let playerDetails= fetchPlayerDetails(username);
+     // let email= playerDetails.email;
+    console.log(playerDetails);
+    // console.log(email);
     var con = mysql.createConnection({
         host: "localhost",
         user: "ChessUser",//"root",
         password: "Queen123", //"950824",
         database: "chessstudyschema"
     });
-    var username = request.query.username;
     if(username) {
         con.connect(function(err) {
             if (err) throw err;
@@ -129,21 +135,36 @@ app.get('/profile', function(request, response) {
                 if (err) throw err;
                 if(result.length>0) {
                     console.log("****PLAYER PROFILE***");
-                    console.log(result);
-                    // response.setAttribute("result",result);
                     let data = {
                         username: username,
-                        Blitz_Chess: result[0].Blitz_Chess,
-                        Bullet_Chess:result[0].Bullet_Chess,
-                        Rapid_Chess:result[0].Rapid_Chess,
-                        Long_Chess:result[0].Long_Chess,
-                        Blitz_Chess960: result[0].Blitz_Chess960,
-                        Bullet_Chess960: result[0].Bullet_Chess960,
-                        Rapid_Chess960: result[0].Rapid_Chess960,
-                        Long_Chess960: result[0].Long_Chess960
+                        Blitz_ChessF0: result[0].Blitz_ChessF0,
+                        Bullet_ChessF0:result[0].Bullet_ChessF0,
+                        Rapid_ChessF0:result[0].Rapid_ChessF0,
+                        Long_ChessF0:result[0].Long_ChessF0,
+                        Blitz_Chess960F0: result[0].Blitz_Chess960F0,
+                        Bullet_Chess960F0: result[0].Bullet_Chess960F0,
+                        Rapid_Chess960F0: result[0].Rapid_Chess960F0,
+                        Long_Chess960F0: result[0].Long_Chess960F0,
+                        Blitz_ChessF1: result[0].Blitz_ChessF1,
+                        Bullet_ChessF1:result[0].Bullet_ChessF1,
+                        Rapid_ChessF1:result[0].Rapid_ChessF1,
+                        Long_ChessF1:result[0].Long_ChessF1,
+                        Blitz_Chess960F1: result[0].Blitz_Chess960F1,
+                        Bullet_Chess960F1: result[0].Bullet_Chess960F1,
+                        Rapid_Chess960F1: result[0].Rapid_Chess960F1,
+                        Long_Chess960F1: result[0].Long_Chess960F1,
+                        Blitz_ChessF2: result[0].Blitz_ChessF2,
+                        Bullet_ChessF2:result[0].Bullet_ChessF2,
+                        Rapid_ChessF2:result[0].Rapid_ChessF2,
+                        Long_ChessF2:result[0].Long_ChessF2,
+                        Blitz_Chess960F2: result[0].Blitz_Chess960F2,
+                        Bullet_Chess960F2: result[0].Bullet_Chess960F2,
+                        Rapid_Chess960F2: result[0].Rapid_Chess960F2,
+                        Long_Chess960F2: result[0].Long_Chess960F2,
                     };
-                    console.log(data);
-                    response.redirect(`/profilePage?username=${username}&Blitz_Chess=${data.Blitz_Chess}&Bullet_Chess=${data.Bullet_Chess}&Rapid_Chess=${data.Rapid_Chess}&Long_Chess=${data.Long_Chess}&Blitz_Chess960=${data.Blitz_Chess960}&Bullet_Chess960=${data.Bullet_Chess960}&Rapid_Chess960=${data.Rapid_Chess960}&Long_Chess960=${data.Long_Chess960}`);
+                    // console.log(data);
+                    //&password=${password}
+                    response.redirect(`/profilePage?username=${username}&password=${password}&Blitz_ChessF0=${data.Blitz_ChessF0}&Bullet_ChessF0=${data.Bullet_ChessF0}&Rapid_ChessF0=${data.Rapid_ChessF0}&Long_ChessF0=${data.Long_ChessF0}&Blitz_Chess960F0=${data.Blitz_Chess960F0}&Bullet_Chess960F0=${data.Bullet_Chess960F0}&Rapid_Chess960F0=${data.Rapid_Chess960F0}&Long_Chess960F0=${data.Long_Chess960F0}&Blitz_ChessF1=${data.Blitz_ChessF1}&Bullet_ChessF1=${data.Bullet_ChessF1}&Rapid_ChessF1=${data.Rapid_ChessF1}&Long_ChessF1=${data.Long_ChessF1}&Blitz_Chess960F1=${data.Blitz_Chess960F1}&Bullet_Chess960F1=${data.Bullet_Chess960F1}&Rapid_Chess960F1=${data.Rapid_Chess960F1}&Long_Chess960F1=${data.Long_Chess960F1}  &Blitz_ChessF2=${data.Blitz_ChessF2}&Bullet_ChessF2=${data.Bullet_ChessF2}&Rapid_ChessF2=${data.Rapid_ChessF2}&Long_ChessF2=${data.Long_ChessF2}&Blitz_Chess960F2=${data.Blitz_Chess960F2}&Bullet_Chess960F2=${data.Bullet_Chess960F2}&Rapid_Chess960F2=${data.Rapid_Chess960F2}&Long_Chess960F2=${data.Long_Chess960F2}`);
                     // response.redirect(`/profilePage?data=${data}`);
                     // response.sendFile(__dirname + '/profile.html');
                     // localStorage.setItem("result", result);
@@ -158,6 +179,106 @@ app.get('/challenges', function(request, response){
 
 app.get('/topRankings', function(request, response){
     response.sendFile(__dirname + '/top_ranking.html');
+});
+
+app.get('/topRank', (request, response) => {
+    let username = request.query.username;
+    let password = request.query.password;
+    // let gameType= request.query.gameType;
+    // let forkType= request.query.forkType;
+    // let formatType= request.query.formatType;
+    let columnName=request.query.columnName;
+    // if(gameType==="chess"){
+    //     if(forkType=== "0"){
+    //         switch(formatType) {
+    //             case "bullet":
+    //                 columnName="Bullet_ChessF0";
+    //                 break;
+    //             case "blitz":
+    //                 columnName="Blitz_ChessF0";
+    //                 break;
+    //             case "rapid":
+    //                 columnName="Rapid_ChessF0";
+    //                 break;
+    //             case "long":
+    //                 columnName="Long_ChessF0";
+    //                 break;
+    //             default:
+    //                 columnName="Blitz_ChessF0";
+    //         }
+    //     }else if (forkType === "1"){
+    //         switch(formatType) {
+    //             case "bullet":
+    //                 columnName="Bullet_ChessF1";
+    //                 break;
+    //             case "blitz":
+    //                 columnName="Blitz_ChessF1";
+    //                 break;
+    //             case "rapid":
+    //                 columnName="Rapid_ChessF1";
+    //                 break;
+    //             case "long":
+    //                 columnName="Long_ChessF1";
+    //                 break;
+    //             default:
+    //                 columnName="Bullet_ChessF1";
+    //         }
+    //     }else if (forkType=== "2"){
+    //         switch(formatType) {
+    //             case "bullet":
+    //                 columnName="Bullet_ChessF2";
+    //                 break;
+    //             case "blitz":
+    //                 columnName="Blitz_ChessF2";
+    //                 break;
+    //             case "rapid":
+    //                 columnName="Rapid_ChessF2";
+    //                 break;
+    //             case "long":
+    //                 columnName="Long_ChessF2";
+    //                 break;
+    //             default:
+    //                 columnName="Bullet_ChessF2";
+    //         }
+    //     }
+    // }
+    //Similar Code for Chess960
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "ChessUser",
+        password: "Queen123",
+        database: "chessstudyschema"
+    });
+    con.connect(function (err) {
+        if (err) throw err;
+        let sql = 'select ELO_ID from elo_rating order by '+ columnName+' desc limit 0,10;';
+        console.log(sql);
+        con.query(sql,function (err, result) {
+            if (err)  throw err;
+            if(result.length>0) {
+                console.log("****Top Ranks***");
+                //todo: How to avoid hardcoding for each type of game?
+                console.log(result);
+                let rankData= {
+                    rank1: result[0].ELO_ID,
+                    rank2: result[1].ELO_ID,
+                    rank3: result[2].ELO_ID,
+                    rank4: result[3].ELO_ID,
+                    rank5: result[4].ELO_ID,
+                    // rank6: result[5].Bullet_ChessF0,
+                    // rank7: result[6].Bullet_ChessF0,
+                    // rank8: result[7].Bullet_ChessF0,
+                    // rank9: result[8].Bullet_ChessF0,
+                    // rank10: result[9].Bullet_ChessF0
+                }
+                console.log(rankData);
+                response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.rank1}&rank2=${rankData.rank2}&rank3=${rankData.rank3}&rank4=${rankData.rank4}&rank5=${rankData.rank5}&rank6=${rankData.rank6}&rank7=${rankData.rank7}&rank8=${rankData.rank8}&rank9=${rankData.rank9}&rank10=${rankData.rank10}`);
+            }
+        })
+    })
+
+
 });
 
 io.on('connection', function (socket) {
@@ -249,52 +370,59 @@ io.on('connection', function (socket) {
             }
         }
     }
-
-    function fetchPlayerDetails(username){
-        var mysql = require('mysql');
-        var con = mysql.createConnection({
-            host: "localhost",
-            user: "ChessUser",
-            password: "Queen123",
-            database: "chessstudyschema"
-        });
-
-        con.connect(function(err) {
-            if (err) throw err;
-            var sql = "SELECT * from player WHERE username="+username+")";
-            con.query(sql, function (err, result) {
-                if (err) throw err;
-                console.log(result.affectedRows + " record(s) updated");
-            });
-        });
-    }
-
-    /**
-     * This function updates the ELO Rating after the game is over for the player.
-     * Input: Player ID
-     * Output: All 4 types of ELO Ratings
-     */
-    function updateELORating(player_ID,game_type,new_rating){
-        var mysql = require('mysql');
-        var con = mysql.createConnection({
-            host: "localhost",
-            user: "ChessUser",
-            password: "Queen123",
-            database: "chessstudyschema"
-        });
-
-        con.connect(function(err) {
-            if (err) throw err;
-            var sql = "UPDATE elo_rating SET"+ game_type+"="+new_rating+" WHERE ELO_ID IN (SELECT ELO_ID from player WHERE Player_ID="+player_ID+")";
-            con.query(sql, function (err, result) {
-                if (err) throw err;
-                console.log(result.affectedRows + " record(s) updated");
-            });
-        });
-    }
-
 });
 
+/**
+ * This function updates the ELO Rating after the game is over for the player.
+ * Input: Player ID
+ * Output: All 4 types of ELO Ratings
+ */
+function updateELORating(player_ID,game_type,new_rating){
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "ChessUser",
+        password: "Queen123",
+        database: "chessstudyschema"
+    });
+
+    con.connect(function(err) {
+        if (err) throw err;
+        var sql = "UPDATE elo_rating SET"+ game_type+"="+new_rating+" WHERE ELO_ID IN (SELECT ELO_ID from player WHERE Player_ID="+player_ID+")";
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            console.log(result.affectedRows + " record(s) updated");
+        });
+    });
+}
+
+function fetchPlayerDetails(username){
+    var mysql = require('mysql');
+    var con = mysql.createConnection({
+        host: "localhost",
+        user: "ChessUser",
+        password: "Queen123",
+        database: "chessstudyschema"
+    });
+
+    con.connect(function(err) {
+        if (err) throw err;
+        var sql = 'SELECT * from player WHERE username="'+username+'";';
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            playerDetails={
+                playerID:result[0].Player_ID,
+                username: result[0].Username,
+                password: result[0].Password,
+                email:result[0].Email
+            }
+            console.log(playerDetails);
+            return playerDetails;
+        });
+    });
+
+
+}
 function create_UUID(){
     var dt = new Date().getTime();
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

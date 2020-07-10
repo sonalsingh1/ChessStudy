@@ -25,31 +25,35 @@ if(username && password) {
 }
 
 function displayPlayerProfile() {
-    var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
+    // var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
+
     console.log("****PLAYER PROFILE***");
     console.log(username);
     let data = {
-        username: username
+        username: username,
+        password:password
     };
     location.href = "/profile?" + $.param(data);
 }
 
 function displayChallenges() {
-    var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
+    // var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
     console.log("****PLAYER CHALLENGES***");
     console.log(username);
     let data = {
-        username: username
+        username: username,
+        password:password
     };
     location.href = "/challenges?" + $.param(data);
 }
 
 function displayTopRankings() {
-    var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
+    // var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
     console.log("****TOP RANKINGS***");
     console.log(username);
     let data = {
-        username: username
+        username: username,
+        password:password
     };
     location.href = "/topRankings?" + $.param(data);
 }
