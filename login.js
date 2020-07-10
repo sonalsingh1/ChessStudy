@@ -1,7 +1,6 @@
-let signedIn=false;
+var signedIn=false;
 
 
-//TODO: give call to database and fetch User information
 var signIn = function(){
     var username= document.getElementById("userID").value;
     var password= document.getElementById("password").value;

@@ -65,7 +65,7 @@ app.get('/login', function(request, response) {
             con.query('select * from player where username="' + username + '" and password="' + password + '";', function (err, result) {
                 if (err) throw err;
                 if (result.length > 0) {
-                    response.redirect(`/homepage?username=${username}`);
+                    response.redirect(`/homepage?username=${username}&password=${password}`);
                 } else { // no user found
                     response.redirect('/?status=false');
                 }

@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="30761c6e-e865-44e3-aa60-5914a911532e" name="HeinzServer" url="http://ilab1.heinz.cmu.edu">
-        <fileTransfer host="ilab1.heinz.cmu.edu" port="22" privateKey="C:\Users\xjcpd\.ssh\id_rsa" accessType="SFTP" keyPair="true">
+        <fileTransfer host="ilab1.heinz.cmu.edu" port="22" privateKey="C:\Users\xjcpd\.ssh\id_rsa" rootFolder="/home/jiechenx" accessType="SFTP" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

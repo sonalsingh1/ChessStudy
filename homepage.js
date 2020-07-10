@@ -17,8 +17,11 @@ function startPlay() {
 
 const urlParams = new URLSearchParams(window.location.search);
 let username = urlParams.get('username');
-if(username) {
+let password = urlParams.get('password');
+if(username && password) {
     $('#user').text(`User Name: ${username}`);
+} else {
+    location.href = '/';
 }
 
 function displayPlayerProfile() {

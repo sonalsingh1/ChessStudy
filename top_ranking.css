@@ -12,6 +12,8 @@
 			font-weight: bold;
 		}
 		.side-l{
+			position: relative;
+			z-index: 10;
 			background-color: #9d03fc; /* Green */
 			width: 80%;
 			border: none;
