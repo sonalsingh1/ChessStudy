@@ -5,3 +5,4 @@
 # ssh keys
 /.ssh
 /.idea
+/webServers.xml
