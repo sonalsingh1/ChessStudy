@@ -52,7 +52,7 @@ app.get('/login', function(request, response) {
         host: "localhost",
         user: "ChessUser",//"root",
         password: "Queen123", //"950824",
-        database: "chessstudyschema"
+        database: "chessstudy"
     });
     var username = request.query.userName;
     var password = request.query.passWord;
@@ -82,7 +82,7 @@ app.get('/signup', function(request,response){
         host: "localhost",
         user: "ChessUser",//"root",
         password: "Queen123", //"950824",
-        database: "chessstudyschema"
+        database: "chessstudy"
     });
     let username = request.query.userName;
     let password = request.query.passWord;
@@ -101,9 +101,16 @@ app.get('/signup', function(request,response){
                 let id = create_UUID();
                 sql = `INSERT INTO player VALUES ("${id}","${username}","${password}","${email}");`;
                 con.query(sql, function (err, result) {
-                    if (err) throw err;
+                    if (err) con.rollback();
+                });
+
+                // create the ELO_rating column for the user
+                sql = `INSERT INTO elo_rating (ELO_ID) VALUES ("${username}");`;
+                con.query(sql, function(err, result){
+                    if (err) con.rollback();
                     response.redirect('/?status=created');
                 });
+
                 con.commit();
             } else { // user already existed
                 response.redirect('/createuser?status=existed');
@@ -125,7 +132,7 @@ app.get('/profile', function(request, response) {
         host: "localhost",
         user: "ChessUser",//"root",
         password: "Queen123", //"950824",
-        database: "chessstudyschema"
+        database: "chessstudy"
     });
     if(username) {
         con.connect(function(err) {
@@ -184,71 +191,15 @@ app.get('/topRankings', function(request, response){
 app.get('/topRank', (request, response) => {
     let username = request.query.username;
     let password = request.query.password;
-    // let gameType= request.query.gameType;
-    // let forkType= request.query.forkType;
-    // let formatType= request.query.formatType;
     let columnName=request.query.columnName;
-    // if(gameType==="chess"){
-    //     if(forkType=== "0"){
-    //         switch(formatType) {
-    //             case "bullet":
-    //                 columnName="Bullet_ChessF0";
-    //                 break;
-    //             case "blitz":
-    //                 columnName="Blitz_ChessF0";
-    //                 break;
-    //             case "rapid":
-    //                 columnName="Rapid_ChessF0";
-    //                 break;
-    //             case "long":
-    //                 columnName="Long_ChessF0";
-    //                 break;
-    //             default:
-    //                 columnName="Blitz_ChessF0";
-    //         }
-    //     }else if (forkType === "1"){
-    //         switch(formatType) {
-    //             case "bullet":
-    //                 columnName="Bullet_ChessF1";
-    //                 break;
-    //             case "blitz":
-    //                 columnName="Blitz_ChessF1";
-    //                 break;
-    //             case "rapid":
-    //                 columnName="Rapid_ChessF1";
-    //                 break;
-    //             case "long":
-    //                 columnName="Long_ChessF1";
-    //                 break;
-    //             default:
-    //                 columnName="Bullet_ChessF1";
-    //         }
-    //     }else if (forkType=== "2"){
-    //         switch(formatType) {
-    //             case "bullet":
-    //                 columnName="Bullet_ChessF2";
-    //                 break;
-    //             case "blitz":
-    //                 columnName="Blitz_ChessF2";
-    //                 break;
-    //             case "rapid":
-    //                 columnName="Rapid_ChessF2";
-    //                 break;
-    //             case "long":
-    //                 columnName="Long_ChessF2";
-    //                 break;
-    //             default:
-    //                 columnName="Bullet_ChessF2";
-    //         }
-    //     }
-    // }
+
     //Similar Code for Chess960
     var mysql = require('mysql');
     var con = mysql.createConnection({
         host: "localhost",
         user: "ChessUser",
         password: "Queen123",
-        database: "chessstudyschema"
+        database: "chessstudy"
     });
     con.connect(function (err) {
         if (err) throw err;
@@ -271,7 +222,7 @@ app.get('/topRank', (request, response) => {
                     // rank8: result[7].Bullet_ChessF0,
                     // rank9: result[8].Bullet_ChessF0,
                     // rank10: result[9].Bullet_ChessF0
-                }
+                };
                 console.log(rankData);
                 response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.rank1}&rank2=${rankData.rank2}&rank3=${rankData.rank3}&rank4=${rankData.rank4}&rank5=${rankData.rank5}&rank6=${rankData.rank6}&rank7=${rankData.rank7}&rank8=${rankData.rank8}&rank9=${rankData.rank9}&rank10=${rankData.rank10}`);
             }
@@ -383,7 +334,7 @@ function updateELORating(player_ID,game_type,new_rating){
         host: "localhost",
         user: "ChessUser",
         password: "Queen123",
-        database: "chessstudyschema"
+        database: "chessstudy"
     });
 
     con.connect(function(err) {
@@ -402,7 +353,7 @@ function fetchPlayerDetails(username){
         host: "localhost",
         user: "ChessUser",
         password: "Queen123",
-        database: "chessstudyschema"
+        database: "chessstudy"
     });
 
     con.connect(function(err) {
