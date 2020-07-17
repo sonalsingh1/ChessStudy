@@ -4,6 +4,15 @@ const socket = require('socket.io');
 const queues = new Map();
 
 const port = process.env.PORT || 8080;
+
+const mysql = require('mysql');
+const con = mysql.createConnection({
+    host: "localhost",
+    user: "ChessUser",
+    password: "Queen123",
+    database: "chessstudy"
+});
+
 var app = express();
 const server = http.createServer(app);
 const io = socket(server);
@@ -47,76 +56,85 @@ app.get('/profilePage',(req,res) => {
 });
 
 app.get('/login', function(request, response) {
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "ChessUser",//"root",
-        password: "Queen123", //"950824",
-        database: "chessstudy"
-    });
     var username = request.query.userName;
     var password = request.query.passWord;
     if(username && password) {
         var sql = 'select * from player where username="' + username + '" and password="' + password + '";';
         console.log(sql);
-        con.connect(function (err) {
+        con.query('select * from player where username="' + username + '" and password="' + password + '";', function (err, result) {
             if (err) throw err;
-            let result;
-            con.query('select * from player where username="' + username + '" and password="' + password + '";', function (err, result) {
-                if (err) throw err;
-                if (result.length > 0) {
-                    response.redirect(`/homepage?username=${username}&password=${password}`);
-                } else { // no user found
-                    response.redirect('/?status=false');
-                }
-                response.end();
-            });
+            if (result.length > 0) {
+                response.redirect(`/homepage?username=${username}&password=${password}`);
+            } else { // no user found
+                response.redirect('/?status=false');
+            }
+            response.end();
         });
     }
 });
 
 
 app.get('/signup', function(request,response){
-    let mysql = require('mysql');
-    let con = mysql.createConnection({
-        host: "localhost",
-        user: "ChessUser",//"root",
-        password: "Queen123", //"950824",
-        database: "chessstudy"
-    });
     let username = request.query.userName;
     let password = request.query.passWord;
     let email = request.query.email;
+    let sql = `SELECT Player_ID FROM player WHERE Username="${username}";`;
+    con.query(sql,function (err, result) {
+        if (err) {
+            con.rollback(function(){
+                throw err;
+            });
+        }
+        if (result.length === 0) { // no user found
+            let id = create_UUID();
+            sql = `INSERT INTO player VALUES ("${id}","${username}","${password}","${email}");`;
+            con.query(sql, function (err, result) {
+                if (err) con.rollback();
+            });
 
-    con.connect(function (err) {
-        if (err) throw err;
-        let sql = `SELECT Player_ID FROM player WHERE Username="${username}";`;
-        con.query(sql,function (err, result) {
-            if (err) {
-                con.rollback(function(){
-                    throw err;
-                });
-            }
-            if (result.length === 0) { // no user found
-                let id = create_UUID();
-                sql = `INSERT INTO player VALUES ("${id}","${username}","${password}","${email}");`;
-                con.query(sql, function (err, result) {
-                    if (err) con.rollback();
-                });
+            // create the ELO_rating column for the user
+            sql = `INSERT INTO elo_rating (ELO_ID) VALUES ("${username}");`;
+            con.query(sql, function(err, result){
+                if (err) con.rollback();
+                response.redirect('/?status=created');
+            });
 
-                // create the ELO_rating column for the user
-                sql = `INSERT INTO elo_rating (ELO_ID) VALUES ("${username}");`;
-                con.query(sql, function(err, result){
-                    if (err) con.rollback();
-                    response.redirect('/?status=created');
-                });
-
-                con.commit();
-            } else { // user already existed
-                response.redirect('/createuser?status=existed');
-            }
-        })
+            con.commit();
+        } else { // user already existed
+            response.redirect('/createuser?status=existed');
+        }
     })
+
+});
+
+app.get('/verify',function (request, response) {
+    var mysql = require('mysql');
+    let username = request.query.username;
+    let password = request.query.password;
+    if(username && password) {
+        let sql = `SELECT Username FROM player WHERE username="${username}" AND password="${password}";`;
+
+            con.query(sql, function (err, result) {
+                try {
+                    if (err) throw err;
+                    if (result.length > 0){ // user verified
+                        let gameType = request.query.gameType;
+                        let startTime = request.query.startTime;
+                        let timeIncrement = request.query.timeIncrement;
+                        let forkAvailable = request.query.forkAvailable;
+                        let rate_type = request.query.rate_type;
+                        let elo_col = request.query.elo_col;
+                        response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_typ=${rate_type}&username=${username}&elo_col=${elo_col}`);
+                    }
+                } catch (e) {
+                    console.log(e);
+                    response.redirect('/');
+                }
+            })
+
+    } else { // redirect user to login page
+        response.redirect('/');
+    }
 });
 
 var playerDetails;
@@ -234,12 +252,13 @@ app.get('/topRank', (request, response) => {
 
 io.on('connection', function (socket) {
     var color;
-    var playerId =  Math.floor((Math.random() * 100) + 1); // extracted from DB
+    var playerId;
 
 
-    console.log(playerId + ' connected');
-
-    socket.on('joined', function (qName) {
+    socket.on('joined', function (data) {
+        playerId = data.username;
+        let qName = data.qName;
+        console.log(playerId + ' Connected');
         match(playerId, qName);
 
     });
@@ -272,7 +291,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('timeUp', function (msg) {
-        io.emit('timeUp', msg);
+        socket.broadcast.emit('timeUp', msg);
     });
 
     socket.on('gameOver', function (msg) {
@@ -294,6 +313,135 @@ io.on('connection', function (socket) {
     socket.on('drawAccepted', function(msg){
         io.emit('drawAccepted', msg);
     });
+
+    socket.on('score', function(msg){
+        let elo;
+        let sql = `SELECT ${msg.elo_col} AS result FROM elo_rating WHERE ELO_ID = "${msg.username}";`;
+        con.query(sql,function(err, result){
+            try{
+                if(err) throw err;
+                elo = result[0].result;
+                msg = {
+                    username: msg.username,
+                    roomId: msg.roomId,
+                    score: msg.score,
+                    old_elo: elo
+                };
+                socket.broadcast.emit('opponentScore', msg);
+            }catch (e) {
+                console.log(e);
+            }
+        });
+
+    });
+
+    socket.on('calcELO', function (msg) {
+        let elo_col = msg.elo_col;
+        let username = msg.username;
+        let self_score = msg.self_score;
+        let opponent_score = msg.opponent_score;
+        let opponent_name = msg.opponent_name;
+        let type = msg.type;
+        let r2 = msg.opponent_elo;
+
+        let r1; // r1 is the self-elo, r2 is the opponent elo
+        // retrieve elo stored
+        let sql = `SELECT ${elo_col} AS result FROM elo_rating WHERE ELO_ID = "${username}";`;
+        con.query(sql, function (err, result) {
+            try {
+                if (err) throw err;
+                r1 = result[0].result;
+                // calculate new elo
+                if(r1 && r2) {
+                    let R1 = Math.pow(10, r1 / 400);
+                    let R2 = Math.pow(10, r2 / 400);
+                    let E1 = R1 / (R1 + R2);
+                    let E2 = R2 / (R1 + R2);
+                    let flag;
+                    if (self_score > opponent_score) flag = 1;
+                    else if(self_score < opponent_score) flag = 0;
+                    else flag = 0.5;
+                    let new_elo = Math.round(r1 + 24*(flag - E1));
+                    sql = `UPDATE elo_rating SET ${elo_col}=${new_elo} WHERE ELO_ID="${username}";`;
+                    con.query(sql,function (err,result) {
+                        try{
+                            if(err) throw err;
+                            console.log(result.affectedRows + " record(s) updated");
+                            con.commit();
+                            msg = {
+                                roomId: msg.roomId,
+                                old_elo: r1,
+                                new_elo: new_elo,
+                                type: type
+                            };
+                            socket.emit('new_elo',msg)
+                        } catch (e) {
+                            con.rollback();
+                            console.log(e);
+                        }
+                    })
+                }
+            } catch (e){
+                console.log(e);
+            }
+        });
+    });
+
+    socket.on('independent_score', function (msg) {
+        let sql = `SELECT ${msg.elo_col} AS result FROM elo_rating WHERE ELO_ID = "${msg.username}";`;
+        let elo;
+        con.query(sql,function (err, result) {
+            try{
+                if (err) throw err;
+                elo = result[0].result;
+                msg = {
+                    username: msg.username,
+                    roomId: msg.roomId,
+                    score: msg.score,
+                    old_elo: elo
+                };
+                io.emit('opponent_independent_score', msg);
+            } catch (e) {
+                console.log(e)
+            }
+        });
+    });
+
+    socket.on('calc_independent_elo', function (msg) {
+        let score = msg.score;
+        let username=msg.username;
+        let r1 = msg.self_elo;
+        let r2 = msg.opponent_elo;
+        let old_elo = r1;
+        for (let i = 0; i <score.length ; i++) {
+            let flag = score[i];
+            let R1 = Math.pow(10, r1 / 400);
+            let R2 = Math.pow(10, r2 / 400);
+            let E1 = R1 / (R1 + R2);
+            let E2 = R2 / (R1 + R2);
+            r1 = Math.round(r1 + 24*(flag - E1));
+        }
+        let new_elo = r1;
+        let sql = `UPDATE elo_rating SET ${msg.elo_col}=${new_elo} WHERE ELO_ID="${username}";`;
+
+        con.query(sql,function(err,result){
+            try{
+                if(err) throw err;
+                console.log(result.affectedRows + " record(s) updated");
+                con.commit();
+                msg = {
+                    roomId: msg.roomId,
+                    old_elo: old_elo,
+                    new_elo: new_elo,
+                };
+                socket.emit('new_elo',msg);
+            } catch (e) {
+                console.log(e);
+                con.rollback();
+            }
+        })
+    });
+
 
     function match(playerId, qName){
         // empty queue
@@ -366,7 +514,7 @@ function fetchPlayerDetails(username){
                 username: result[0].Username,
                 password: result[0].Password,
                 email:result[0].Email
-            }
+            };
             console.log(playerDetails);
             return playerDetails;
         });

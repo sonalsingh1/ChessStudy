@@ -1,20 +1,3 @@
-function startPlay() {
-    let btn = $('input[name="style_time"]:checked').val().split("_");
-    let gameType = btn[0];
-    btn = btn[1].split("+");
-    let startTime = btn[0];
-    btn = btn[1].split("*");
-    let timeIncrement = btn[0];
-    let forkAvailable = btn[1];
-    let data = {
-        gameType: gameType,
-        startTime: startTime,
-        timeIncrement: timeIncrement,
-        forkAvailable: forkAvailable
-    };
-    location.href = "/game?" + $.param(data);
-}
-
 const urlParams = new URLSearchParams(window.location.search);
 let username = urlParams.get('username');
 let password = urlParams.get('password');
@@ -23,6 +6,32 @@ if(username && password) {
 } else {
     location.href = '/';
 }
+
+function startPlay() {
+    let btn = $('input[name="style_time"]:checked').val().split("_");
+    let rate_type = $('input[name="rate_type"]:checked').val();
+    let gameType = btn[0];
+    btn = btn[1].split("+");
+    let startTime = btn[0];
+    btn = btn[1].split("*");
+    let timeIncrement = btn[0];
+    let forkAvailable = btn[1];
+    let temp = $('input[name="style_time"]:checked').val().split('_');
+    let elo_col = temp[0] + '_'+ $('input[name="game_type"]:checked').val() + 'F'+ temp[1].slice(-1);
+
+    let data = {
+        gameType: gameType,
+        startTime: startTime,
+        timeIncrement: timeIncrement,
+        forkAvailable: forkAvailable,
+        rate_type: rate_type,
+        username: username,
+        password: password,
+        elo_col: elo_col
+    };
+    location.href = "/verify?" + $.param(data)
+}
+
 
 function displayPlayerProfile() {
     // var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
@@ -61,3 +70,4 @@ function displayTopRankings() {
 function onLogOut() {
     location.href = "/?" + $.param("");
 }
+

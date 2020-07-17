@@ -1,7 +1,8 @@
-// the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable
-var param = Array(4);
+// the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable, rateType, userName
+var param = Array(7);
 //This variable contains the total number of boards where the game is over
 var gameOverBoardCount=0;
+var self_elo, opponent_elo;
 
 getPara();
 console.log(param);
@@ -20,7 +21,7 @@ var games = Array(parseInt(param[3]) * 2 + 1);
 for (let i = 0; i <games.length; i++) {
     games[i] = new Chess();
 }
-
+var winners = [];
 var boards = Array(games.length); // Same length boards array contains all game boards corresponding to games.
 var timers = Array(games.length); // Same length timers array contains all timers corresponding to each board.
 var opponentTimers = Array(games.length); // Same length timers array contains all opponent timers corresponding to each board.
@@ -46,7 +47,11 @@ var connect = function(){
     let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3];
     room.remove();
     button.remove();
-    socket.emit('joined', qName);
+    let data = {
+        qName: qName,
+        username: param[5]
+    };
+    socket.emit('joined', data);
 };
 
 // manually call the connect function
@@ -84,7 +89,6 @@ socket.on('play', function (msg) {
             forkButton.disabled = true;
         } else opponentTimers[0].pause();
     }
-    // console.log(msg)
 });
 
 socket.on('move', function (msg) {
@@ -147,7 +151,7 @@ var onDrop = function (source, target) {
     });
     if (games[id-1].game_over()) {
         state.innerHTML = 'GAME OVER';
-        socket.emit('gameOver', roomId)
+        socket.emit('gameOver', roomId);
         timers[id-1].stop();
         opponentTimers[id-1].stop();
     }
@@ -262,13 +266,12 @@ function updateStatus (id) {
         moveColor = 'Black'
     }
     if(isGameOver){
-        console.log("Game Over!")
+        console.log("Game Over!");
         status = 'Game over for board '+ id;
     }else if(resigned){
-        console.log("Resigned board= ", id)
+        console.log("Resigned board= ", id);
         status = 'Game over, resigned by ' + moveColor
     }else if(timeUp){
-        console.log("Time Up for board ", id)
         status = 'Game over, time Up for ' + moveColor
     }else {
         // checkmate?
@@ -392,7 +395,9 @@ function startTimer(id, timeObject) {
     timer.addEventListener('targetAchieved', function (e) {
         $('#timer_' + id + ' .values').html('TIME UP!!');
         let msg = {roomId: roomId, ID:id};
+        winners.push(0);
         socket.emit('timeUp', msg);
+        gameOverForBoard(msg);
         timeUp=true;
     });
 }
@@ -416,8 +421,7 @@ function startOpponentTimer(id, timeObject) {
 function gameOverForBoard(msg){
     gameOverBoardCount++;
     if(gameOverBoardCount===totalGame){
-        state.innerHTML = 'GAME OVER!';
-        document.querySelector('#DLButton').hidden = false;
+        totalGameOver();
         socket.emit('totalGameOver',roomId);
     }
         timers[msg.ID-1].stop();
@@ -436,13 +440,23 @@ function disableBoardButton(id){
 
 socket.on('timeUp', function (msg) {
     if(msg.roomId===roomId) {
+        console.log("Received opponent time up for ", msg.ID);
         timeUp=true;
+        winners.push(1);
         gameOverForBoard(msg);
     }
 });
 
 socket.on('gameOver', function (msg) {
     if(msg.roomId===roomId) {
+        let id = msg.ID;
+        if(games[id-1].in_checkmate()){
+            winners.push(1);
+        } else if (games[id-1].in_draw() || games[id-1].in_stalemate() || games[id-1].in_threefold_repetition()){
+            winners.push(0.5);
+        } else {
+            winners.push(0);
+        }
         gameOverForBoard(msg);
         isGameOver = true;
     }
@@ -453,14 +467,14 @@ function sendResignRequest(parentHtml){
     let msg = {roomId: roomId, ID:id};
     socket.emit('resign',msg);
     resigned=true;
+    winners.push(0);
     gameOverForBoard(msg);
-    // TODO: followed by the game over logic (losing side)
 }
 
 socket.on("opponentResign", function(msg){
     resigned= true;
+    winners.push(1);
     gameOverForBoard(msg);
-    // TODO: followed by the game over logic (winning side)
 });
 
 function offerDraw(parentHtml) {
@@ -484,6 +498,7 @@ socket.on('opponentOfferDraw', function(msg){
 
 socket.on('drawAccepted', function(msg){
     if(roomId === msg.roomId){
+        winners.push(0.5);
         gameOverForBoard(msg);
     }
 });
@@ -515,11 +530,100 @@ function increaseTime(id,oppo){
 // Execute total game over logic for this client, change the state and show DL game button.
 socket.on('totalGameOver', function(msg){
     if(msg.roomId === roomId) {
-        state.innerHTML = 'GAME OVER!';
-        document.querySelector('#DLButton').hidden = false;
+        totalGameOver();
     }
 });
 
-// console.log(color)
+function totalGameOver(){
+    state.innerHTML = 'GAME OVER!';
+    document.querySelector('#DLButton').hidden = false;
+    let rate_type = param[4];
+    if (rate_type === "aggregate"){
+        let sum = 0;
+        for (let i = 0; i < winners.length ; i++) {
+            sum += winners[i];
+        }
+        let msg = {
+            roomId: roomId,
+            username: param[5],
+            score: sum,
+            elo_col: param[6]
+        };
+        socket.emit('score', msg);
+    } else if (rate_type === "independent"){
+        let msg = {
+            roomId: roomId,
+            username: param[5],
+            score: winners,
+            elo_col: param[6]
+        };
+        socket.emit('independent_score', msg);
+    }
+}
 
-// var board;
+socket.on('opponentScore', function (msg) {
+    if(msg.roomId === roomId){
+        let sum = 0;
+        for (let i = 0; i < winners.length ; i++) {
+            sum+=winners[i];
+        }
+        let opponentScore = msg.score;
+        msg = {
+            roomId: roomId,
+            username: param[5],
+            opponent_name: msg.username,
+            elo_col: param[6],
+            self_score: sum,
+            opponent_score: opponentScore,
+            opponent_elo: msg.old_elo
+        };
+        socket.emit('calcELO',msg);
+    }
+});
+
+
+socket.on('new_elo',function (msg) {
+    if(roomId === msg.roomId) {
+        let old_elo = msg.old_elo;
+        let new_elo = msg.new_elo;
+        if (old_elo < new_elo) { // increase value
+            let str = `ELO: ${old_elo} + ${new_elo - old_elo} = ${new_elo}`;
+            $('#elo').text(str);
+            $('#elo').attr('hidden', false);
+            $('#elo').css('color', 'green');
+        } else if (old_elo > new_elo) { // decrease value
+            let str = `ELO: ${old_elo} - ${old_elo - new_elo} = ${new_elo}`;
+            $('#elo').text(str);
+            $('#elo').attr('hidden', false);
+            $('#elo').css('color', 'red');
+        } else {
+            let str = `ELO: ${old_elo} = ${new_elo}`;
+            $('#elo').text(str);
+            $('#elo').attr('hidden', false);
+            $('#elo').css('color', 'orange');
+        }
+    }
+});
+
+socket.on('opponent_independent_score', function(msg){
+    if(msg.roomId === roomId) {
+        console.log(msg);
+        // message from myself
+        if(msg.username === param[5]) {
+            self_elo = msg.old_elo;
+        } else opponent_elo = msg.old_elo;
+
+        if (self_elo && opponent_elo){ // if both messages received
+            let msg = {
+                roomId: roomId,
+                score: winners,
+                username: param[5],
+                self_elo: self_elo,
+                opponent_elo: opponent_elo,
+                elo_col: param[6]
+            };
+            socket.emit('calc_independent_elo', msg);
+        }
+
+    }
+});
