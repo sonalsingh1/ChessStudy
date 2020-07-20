@@ -1,5 +1,5 @@
 // the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable, rateType, userName
-var param = Array(7);
+var param = Array(8);
 //This variable contains the total number of boards where the game is over
 var gameOverBoardCount=0;
 var self_elo, opponent_elo;
@@ -13,6 +13,7 @@ function getPara() {
     for (let i = 0; i < para.length; i++) {
         param[i] = para[i].split("=")[1];
     }
+    console.log("param from game.js="+param);
 }
 
 
@@ -44,7 +45,8 @@ var resigned= false;
 var isGameOver= false;
 
 var connect = function(){
-    let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3];
+    let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7];// should be of format: bullet_1_0_0_chess
+    console.log("qName in game.js="+qName);
     room.remove();
     button.remove();
     let data = {

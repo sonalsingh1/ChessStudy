@@ -9,8 +9,9 @@ if(username && password) {
 
 function startPlay() {
     let btn = $('input[name="style_time"]:checked').val().split("_");
+    let chessOrChess960=$('input[name="game_type"]:checked').val();
     let rate_type = $('input[name="rate_type"]:checked').val();
-    let gameType = btn[0];
+    let gameType = btn[0]; //bullet,blitz..etc
     btn = btn[1].split("+");
     let startTime = btn[0];
     btn = btn[1].split("*");
@@ -27,15 +28,15 @@ function startPlay() {
         rate_type: rate_type,
         username: username,
         password: password,
-        elo_col: elo_col
+        elo_col: elo_col,
+        chessOrChess960:chessOrChess960
     };
+    //location.href = "/game?" + $.param(data);
     location.href = "/verify?" + $.param(data)
 }
 
 
 function displayPlayerProfile() {
-    // var username= urlParams.get('username');////document.getElementById("userID").value; "johnHeinz1";//
-
     console.log("****PLAYER PROFILE***");
     console.log(username);
     let data = {

@@ -32,7 +32,8 @@ var isRoomFull = new Array(100).fill(false);
 
 
 app.get('/game', (req, res) => {
-    let qName = req.query.gameType + "_" + req.query.startTime + "_" + req.query.timeIncrement + "_" + req.query.forkAvailable;
+    let qName = req.query.gameType + "_" + req.query.startTime + "_" + req.query.timeIncrement + "_" + req.query.forkAvailable+"_"+ req.query.chessOrChess960;//+"_"+ req.query.username;
+    console.log("qname in app.get /game="+qName);
     if (!queues.has(qName)){
         queues.set(qName,[]);
     }
@@ -124,7 +125,8 @@ app.get('/verify',function (request, response) {
                         let forkAvailable = request.query.forkAvailable;
                         let rate_type = request.query.rate_type;
                         let elo_col = request.query.elo_col;
-                        response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_typ=${rate_type}&username=${username}&elo_col=${elo_col}`);
+                        let chessOrChess960= request.query.chessOrChess960;
+                        response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_typ=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}`);
                     }
                 } catch (e) {
                     console.log(e);
@@ -136,25 +138,36 @@ app.get('/verify',function (request, response) {
         response.redirect('/');
     }
 });
-
-var playerDetails;
+function fetchPlayerDetails(username){
+    var sql = 'SELECT * from player WHERE username="'+username+'";';
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        playerDetails={
+            playerID:result[0].Player_ID,
+            username: result[0].Username,
+            password: result[0].Password,
+            email:result[0].Email
+        };
+        console.log(playerDetails);
+        return playerDetails;
+    });
+}
+let playerDetails;
 app.get('/profile', function(request, response) {
-    var mysql = require('mysql');
     let username = request.query.username;
     let password = request.query.password;
-    let playerDetails= fetchPlayerDetails(username);
-     // let email= playerDetails.email;
-    console.log(playerDetails);
-    // console.log(email);
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "ChessUser",//"root",
-        password: "Queen123", //"950824",
-        database: "chessstudy"
+    let email="";
+    // let playerDetails= fetchPlayerDetails(username);
+    // console.log(playerDetails);
+    var sql1 = 'SELECT email from player WHERE username="'+username+'";';
+    con.query(sql1, function (err, result) {
+        if (err) throw err;
+        console.log(result);
+        email= result[0].email;
+        console.log(email);
     });
+
     if(username) {
-        con.connect(function(err) {
-            if (err) throw err;
             var sql = 'SELECT * from elo_rating WHERE ELO_ID="'+username+'";';
             con.query(sql, function (err, result) {
                 if (err) throw err;
@@ -162,6 +175,7 @@ app.get('/profile', function(request, response) {
                     console.log("****PLAYER PROFILE***");
                     let data = {
                         username: username,
+                        email:email,
                         Blitz_ChessF0: result[0].Blitz_ChessF0,
                         Bullet_ChessF0:result[0].Bullet_ChessF0,
                         Rapid_ChessF0:result[0].Rapid_ChessF0,
@@ -187,15 +201,9 @@ app.get('/profile', function(request, response) {
                         Rapid_Chess960F2: result[0].Rapid_Chess960F2,
                         Long_Chess960F2: result[0].Long_Chess960F2,
                     };
-                    // console.log(data);
-                    //&password=${password}
-                    response.redirect(`/profilePage?username=${username}&password=${password}&Blitz_ChessF0=${data.Blitz_ChessF0}&Bullet_ChessF0=${data.Bullet_ChessF0}&Rapid_ChessF0=${data.Rapid_ChessF0}&Long_ChessF0=${data.Long_ChessF0}&Blitz_Chess960F0=${data.Blitz_Chess960F0}&Bullet_Chess960F0=${data.Bullet_Chess960F0}&Rapid_Chess960F0=${data.Rapid_Chess960F0}&Long_Chess960F0=${data.Long_Chess960F0}&Blitz_ChessF1=${data.Blitz_ChessF1}&Bullet_ChessF1=${data.Bullet_ChessF1}&Rapid_ChessF1=${data.Rapid_ChessF1}&Long_ChessF1=${data.Long_ChessF1}&Blitz_Chess960F1=${data.Blitz_Chess960F1}&Bullet_Chess960F1=${data.Bullet_Chess960F1}&Rapid_Chess960F1=${data.Rapid_Chess960F1}&Long_Chess960F1=${data.Long_Chess960F1}  &Blitz_ChessF2=${data.Blitz_ChessF2}&Bullet_ChessF2=${data.Bullet_ChessF2}&Rapid_ChessF2=${data.Rapid_ChessF2}&Long_ChessF2=${data.Long_ChessF2}&Blitz_Chess960F2=${data.Blitz_Chess960F2}&Bullet_Chess960F2=${data.Bullet_Chess960F2}&Rapid_Chess960F2=${data.Rapid_Chess960F2}&Long_Chess960F2=${data.Long_Chess960F2}`);
-                    // response.redirect(`/profilePage?data=${data}`);
-                    // response.sendFile(__dirname + '/profile.html');
-                    // localStorage.setItem("result", result);
+                    response.redirect(`/profilePage?username=${username}&password=${password}&email=${email}&Blitz_ChessF0=${data.Blitz_ChessF0}&Bullet_ChessF0=${data.Bullet_ChessF0}&Rapid_ChessF0=${data.Rapid_ChessF0}&Long_ChessF0=${data.Long_ChessF0}&Blitz_Chess960F0=${data.Blitz_Chess960F0}&Bullet_Chess960F0=${data.Bullet_Chess960F0}&Rapid_Chess960F0=${data.Rapid_Chess960F0}&Long_Chess960F0=${data.Long_Chess960F0}&Blitz_ChessF1=${data.Blitz_ChessF1}&Bullet_ChessF1=${data.Bullet_ChessF1}&Rapid_ChessF1=${data.Rapid_ChessF1}&Long_ChessF1=${data.Long_ChessF1}&Blitz_Chess960F1=${data.Blitz_Chess960F1}&Bullet_Chess960F1=${data.Bullet_Chess960F1}&Rapid_Chess960F1=${data.Rapid_Chess960F1}&Long_Chess960F1=${data.Long_Chess960F1}  &Blitz_ChessF2=${data.Blitz_ChessF2}&Bullet_ChessF2=${data.Bullet_ChessF2}&Rapid_ChessF2=${data.Rapid_ChessF2}&Long_ChessF2=${data.Long_ChessF2}&Blitz_Chess960F2=${data.Blitz_Chess960F2}&Bullet_Chess960F2=${data.Bullet_Chess960F2}&Rapid_Chess960F2=${data.Rapid_Chess960F2}&Long_Chess960F2=${data.Long_Chess960F2}`);
                 }
             });
-        });
     }
 });
 app.get('/challenges', function(request, response){
@@ -210,54 +218,47 @@ app.get('/topRank', (request, response) => {
     let username = request.query.username;
     let password = request.query.password;
     let columnName=request.query.columnName;
-
-    //Similar Code for Chess960
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "ChessUser",
-        password: "Queen123",
-        database: "chessstudy"
-    });
-    con.connect(function (err) {
-        if (err) throw err;
-        let sql = 'select ELO_ID from elo_rating order by '+ columnName+' desc limit 0,10;';
+    let rankData=new Map();
+    let sql = 'select ELO_ID from elo_rating order by '+ columnName+' desc limit 0,10;';
         console.log(sql);
         con.query(sql,function (err, result) {
             if (err)  throw err;
             if(result.length>0) {
                 console.log("****Top Ranks***");
-                //todo: How to avoid hardcoding for each type of game?
                 console.log(result);
-                let rankData= {
-                    rank1: result[0].ELO_ID,
-                    rank2: result[1].ELO_ID,
-                    rank3: result[2].ELO_ID,
-                    rank4: result[3].ELO_ID,
-                    rank5: result[4].ELO_ID,
-                    // rank6: result[5].Bullet_ChessF0,
-                    // rank7: result[6].Bullet_ChessF0,
-                    // rank8: result[7].Bullet_ChessF0,
-                    // rank9: result[8].Bullet_ChessF0,
-                    // rank10: result[9].Bullet_ChessF0
-                };
+
+                for(let i=1;i<=result.length;++i){
+                    if(result[i]) {
+                        rankData.set('rank' + i, result[i].ELO_ID);
+                    }
+                }
+                    // rank1:,
+                    // rank2: result[1].ELO_ID,
+                    // rank3: result[2].ELO_ID,
+                    // rank4: result[3].ELO_ID,
+                    // rank5: result[4].ELO_ID,
+                    // rank6: result[5].ELO_ID,
+                    // rank7: result[6].ELO_ID,
+                    // rank8: result[7].ELO_ID,
+                    // rank9: result[8].ELO_ID,
+                    // rank10: result[9].ELO_ID,
                 console.log(rankData);
-                response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.rank1}&rank2=${rankData.rank2}&rank3=${rankData.rank3}&rank4=${rankData.rank4}&rank5=${rankData.rank5}&rank6=${rankData.rank6}&rank7=${rankData.rank7}&rank8=${rankData.rank8}&rank9=${rankData.rank9}&rank10=${rankData.rank10}`);
+                response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.get("rank1")}&rank2=${rankData.get("rank2")}&rank3=${rankData.get("rank3")}&rank4=${rankData.get("rank4")}&rank5=${rankData.get("rank5")}&rank6=${rankData.get("rank6")}&rank7=${rankData.get("rank7")}&rank8=${rankData.get("rank8")}&rank9=${rankData.get("rank9")}&rank10=${rankData.get("rank10")}`);
             }
         })
-    })
 
 
 });
 
 io.on('connection', function (socket) {
     var color;
-    var playerId;
+    var playerId;//var playerId =  Math.floor((Math.random() * 100) + 1); // extracted from DB
 
 
     socket.on('joined', function (data) {
         playerId = data.username;
         let qName = data.qName;
+        console.log("qName on Joined="+data.qName);
         console.log(playerId + ' Connected');
         match(playerId, qName);
 
@@ -442,23 +443,95 @@ io.on('connection', function (socket) {
         })
     });
 
-
-    function match(playerId, qName){
-        // empty queue
+    function match(playerId, qName) {
         let roomId = getID();
-        if (queues.get(qName).length === 0) {
-            queues.get(qName).push({playerId, roomId}); // PlayerId is going to be replaced by the player ID extracted from DB
-            socket.emit('player', { playerId, players: 1 ,color: 'white', roomId });
-            // console.log("first player send " + roomId);
-        } else { // already someone in the room
-            // the matching algo happens here, need a method that returns a playerId and a RoomId
-            let previousRoomId = queues.get(qName).pop().roomId; // pop the player on top
-            socket.emit('player', { playerId, players: 2 ,color: 'black', roomId: previousRoomId });
-            console.log('sending to room:' + previousRoomId);
-        }
+        let qnameArray = qName.split("_");
+        let column_name = qnameArray[0] + "_" + qnameArray[4] + "F" + qnameArray[3];//eg; Bullet_ChessF0
+        // let qName= qnameArray[0] + "_" +qnameArray[1] + "_" +qnameArray[2] + "_" +qnameArray[3] + "_" +qnameArray[4];
+        let username = playerId;//"johnHeinz1";
+        let eloRating=0;
+        console.log("qName in match=" + qName);
+            let sql = 'SELECT ' + column_name + ' as col from elo_rating WHERE ELO_ID="' + playerId + '";';
+            console.log(sql);
+              con.query(sql,  function (err, result) {
+                if (result.err) throw err;
+                console.log(result[0].col);
+                 eloRating=  result[0].col;
+                  console.log("eloRating="+eloRating);
+                  // If queue is empty
+                  // If queue is not empty----- find matching player
+                  // If no player matches the threshold, then add yourself to the queue
+                  // Remove the player from the queue in case the player disconnects
 
-        console.log(queues);
+                  if (queues.get(qName).length === 0) {
+                      queues.get(qName).push({playerId, roomId, eloRating}); // PlayerId is going to be replaced by the player ID extracted from DB
+                      socket.emit('player', {playerId, players: 1, color: 'white', roomId});
+                      console.log("first player send " + roomId);
 
+                      for (const [key, value] of queues.entries()) {
+                          console.log(queues.get(key));
+                      }
+                  } else {
+                      // already someone in the room
+                      // the matching algo happens here, need a method that returns a playerId and a RoomId
+                      for (const [key, value] of queues.entries()) {
+                          console.log(queues.get(key));
+                      }
+                      let queueMembersMap = new Map();
+                      let queueElementsArray = queues.get(qName);
+
+                      //Store all the queue members whose difference is less than threshold in a map
+                      for(let i=0;i<queueElementsArray.length;++i){
+                          let diff = Math.abs(queueElementsArray[i].eloRating - eloRating);
+                          if (diff < 100) {
+                              console.log("player ID is="+queueElementsArray[i].playerId);
+                              queueMembersMap.set(queueElementsArray[i].playerId, diff);
+                          }
+                      }
+
+                      if (queueMembersMap.size > 0) {
+                          let minDiff = Number.MAX_SAFE_INTEGER;
+                          let matchedPlayerID;
+                          for (const [key, value] of queueMembersMap.entries()) {
+                              console.log("key="+key);
+                              console.log("value="+value);
+                              console.log("minDiff="+minDiff);
+                              if (value < minDiff) {
+                                  minDiff = value;
+                                  matchedPlayerID = key;
+                              }
+                          }
+                          //Find the index of matched player
+                          let index=undefined;
+                          for(let i=0;i<queueElementsArray.length;++i){
+                              if(matchedPlayerID===queueElementsArray[i].playerId){
+                                  index=i;
+                              }
+                          }
+                          console.log("matched player ID="+matchedPlayerID);
+                          console.log("Index="+index);
+                          let previousRoomId=queues.get(qName)[index].roomId;
+                          queues.get(qName).splice(index,1);
+                          console.log("Queue after removal of entry at index="+ index);
+                          for (const [key, value] of queues.entries()) {
+                              console.log(queues.get(key));
+                          }
+                          // let previousRoomId = queues.get(qName).pop().roomId; // pop the player on top
+                          socket.emit('player', {playerId, players: 2, color: 'black', roomId: previousRoomId});
+                          console.log('sending to room:' + previousRoomId);
+                      } else {
+                          //Add current player to the queue
+                          queues.get(qName).push({playerId, roomId, eloRating}); // PlayerId is going to be replaced by the player ID extracted from DB
+                          console.log("Queue after queueMemberMap is empty");
+                          for (const [key, value] of queues.entries()) {
+                              console.log(queues.get(key));
+                          }
+                          socket.emit('player', {playerId, players: 1, color: 'white', roomId});
+                      }
+
+                  }
+            });
+        // });
     }
 
     function getID(){
@@ -471,57 +544,7 @@ io.on('connection', function (socket) {
     }
 });
 
-/**
- * This function updates the ELO Rating after the game is over for the player.
- * Input: Player ID
- * Output: All 4 types of ELO Ratings
- */
-function updateELORating(player_ID,game_type,new_rating){
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "ChessUser",
-        password: "Queen123",
-        database: "chessstudy"
-    });
 
-    con.connect(function(err) {
-        if (err) throw err;
-        var sql = "UPDATE elo_rating SET"+ game_type+"="+new_rating+" WHERE ELO_ID IN (SELECT ELO_ID from player WHERE Player_ID="+player_ID+")";
-        con.query(sql, function (err, result) {
-            if (err) throw err;
-            console.log(result.affectedRows + " record(s) updated");
-        });
-    });
-}
-
-function fetchPlayerDetails(username){
-    var mysql = require('mysql');
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "ChessUser",
-        password: "Queen123",
-        database: "chessstudy"
-    });
-
-    con.connect(function(err) {
-        if (err) throw err;
-        var sql = 'SELECT * from player WHERE username="'+username+'";';
-        con.query(sql, function (err, result) {
-            if (err) throw err;
-            playerDetails={
-                playerID:result[0].Player_ID,
-                username: result[0].Username,
-                password: result[0].Password,
-                email:result[0].Email
-            };
-            console.log(playerDetails);
-            return playerDetails;
-        });
-    });
-
-
-}
 function create_UUID(){
     var dt = new Date().getTime();
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

@@ -4,6 +4,7 @@
 const urlParams = new URLSearchParams(window.location.search);
 var username = urlParams.get('username');
 var password = urlParams.get('password');
+var email = urlParams.get('email');
 //Fork 0
 Blitz_ChessF0= urlParams.get('Blitz_ChessF0');
 Bullet_ChessF0=urlParams.get('Bullet_ChessF0');
@@ -35,6 +36,7 @@ Long_Chess960F2=urlParams.get('Long_Chess960F2');
 if(username) {
     $('#user').text(`User Name: ${username}`);
 }
+$('#email').text(`Email: ${email}`);
 
 $('#fork0blitzELO').text(`${Blitz_ChessF0}`);
 $('#fork0bulletELO').text(`${Bullet_ChessF0}`);
