@@ -19,7 +19,7 @@ function startPlay() {
     let forkAvailable = btn[1];
     let temp = $('input[name="style_time"]:checked').val().split('_');
     let elo_col = temp[0] + '_'+ $('input[name="game_type"]:checked').val() + 'F'+ temp[1].slice(-1);
-
+//field for chess game type added
     let data = {
         gameType: gameType,
         startTime: startTime,

@@ -36,6 +36,7 @@ Long_Chess960F2=urlParams.get('Long_Chess960F2');
 if(username) {
     $('#user').text(`User Name: ${username}`);
 }
+//code added for email
 $('#email').text(`Email: ${email}`);
 
 $('#fork0blitzELO').text(`${Blitz_ChessF0}`);

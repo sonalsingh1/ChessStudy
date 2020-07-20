@@ -4,7 +4,7 @@ const socket = require('socket.io');
 const queues = new Map();
 
 const port = process.env.PORT || 8080;
-
+//Call for database;
 const mysql = require('mysql');
 const con = mysql.createConnection({
     host: "localhost",

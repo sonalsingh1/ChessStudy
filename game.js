@@ -1,4 +1,4 @@
-// the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable, rateType, userName
+// the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable, rateType, userName, Chess game type
 var param = Array(8);
 //This variable contains the total number of boards where the game is over
 var gameOverBoardCount=0;
