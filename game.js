@@ -3,6 +3,8 @@ var param = Array(8);
 //This variable contains the total number of boards where the game is over
 var gameOverBoardCount=0;
 var self_elo, opponent_elo;
+var final_pgn_content = "";
+var pgn_file_name;
 
 getPara();
 console.log(param);
@@ -13,7 +15,6 @@ function getPara() {
     for (let i = 0; i < para.length; i++) {
         param[i] = para[i].split("=")[1];
     }
-    console.log("param from game.js="+param);
 }
 
 
@@ -29,6 +30,12 @@ var opponentTimers = Array(games.length); // Same length timers array contains a
 var gameOverBoards = Array(games.length).fill(false);
 
 var socket = io(); // calls the io.on('connection') function in server.
+
+var pgn_file_content = Array(games.length); // array to record pgn movement and timestamps
+for (let i = 0; i <pgn_file_content.length ; i++) {
+    pgn_file_content[i] = "";
+}
+// console.log(pgn_file_content);
 
 var color = "white";
 var players;
@@ -96,9 +103,9 @@ socket.on('play', function (msg) {
 socket.on('move', function (msg) {
     if (msg.room === roomId) {
         let fork = document.querySelector("#forkButton_"+msg.boardId);
+        pgn_file_content[msg.boardId-1] = msg.pgn;
         games[msg.boardId-1].move(msg.move);
         boards[msg.boardId-1].position(games[msg.boardId-1].fen());
-        console.log("moved with " + (msg.boardId-1));
         updateStatus(msg.boardId);
         timers[msg.boardId-1].start(); // resume the timer
         increaseTime(msg.boardId,true); // increment opponent timer
@@ -160,14 +167,22 @@ var onDrop = function (source, target) {
 
     // illegal move
     if (move === null) return 'snapback';
-    else
+    else {
+        pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
         updateStatus(id);
-        socket.emit('move', { move: move, board: games[0].fen(), room: roomId, boardId: this.ID});
-        increaseTime(id,false);
-        timers[id-1].pause(); // pause the timer
-        opponentTimers[id-1].start();
+        socket.emit('move', {
+            move: move,
+            board: games[0].fen(),
+            room: roomId,
+            boardId: this.ID,
+            pgn: pgn_file_content[id - 1]
+        });
+        increaseTime(id, false);
+        timers[id - 1].pause(); // pause the timer
+        opponentTimers[id - 1].start();
         fork.disabled = true; // disable the fork
         // console.log(this.ID)
+    }
 };
 
 var onMouseoverSquare = function (square, piece) {
@@ -342,7 +357,7 @@ function fork(id){
         onSnapEnd: onSnapEnd,
         ID: new_id
     };
-
+    pgn_file_content[new_id-1] += `F${id}-${new_id}: `;
     boards[new_id-1] = ChessBoard(('board_'+ (new_id)), config);
 
     updateStatus(new_id);
@@ -538,7 +553,6 @@ socket.on('totalGameOver', function(msg){
 
 function totalGameOver(){
     state.innerHTML = 'GAME OVER!';
-    document.querySelector('#DLButton').hidden = false;
     let rate_type = param[4];
     if (rate_type === "aggregate"){
         let sum = 0;
@@ -561,6 +575,60 @@ function totalGameOver(){
         };
         socket.emit('independent_score', msg);
     }
+    create_pgn_content();
+    let msg = {
+        file_content: final_pgn_content,
+        username: param[5],
+        game_type: `${param[1]}_${param[2]}_${param[3]}`
+    };
+    socket.emit('pgn_file',msg);
+    console.log(final_pgn_content);
+}
+// create_pgn_content();
+function create_pgn_content(){
+    let re = "";
+    for (let i = 0; i <games.length ; i++) {
+        let timestamp = pgn_file_content[i].trim().split(' ');
+        if(i !== 0){
+            re += timestamp[0] + " ";
+            timestamp.splice(0,1);
+        }
+        // let pgn =
+        //     '[SetUp "1"] [FEN "rnbqkbnr/pppppppp/8/8/P7/8/1PPPPPPP/RNBQKBNR b KQkq a3 0 1"] 1. ... f5 2. Nh3 h5 3. Ng5 e5 4. Nh7 Rxh7 5. Nc3 Kf7'.trim();
+        let pgn = games[i].pgn();
+        // move [] from pgn
+        if(pgn.includes('[')){
+            pgn = pgn.slice(pgn.lastIndexOf(']')+1,pgn.length);
+        }
+        console.log(pgn);
+        let regex = /[0-9]+\./g;
+        let index_array = pgn.match(regex);
+        regex = /(\.\.\.)|([a-zA-Z]+[0-9]+\+?)/g;
+        let move_array = pgn.match(regex);
+        console.log(index_array);
+        console.log(move_array);
+        if (!move_array) continue;
+        let k = 0, z = 0;
+        for (let j = 0; j <move_array.length ; j++) {
+            if(j%2 === 0){
+                re += index_array[k]+' ';
+                k++;
+            }
+            if (move_array[j] === '...'){
+                re += move_array[j] + " ";
+            } else {
+                if (z < timestamp.length) {
+                    re += move_array[j] + timestamp[z] + " ";
+                    z++;
+                } else {
+                    re += move_array[j] + " ";
+                }
+            }
+        }
+        re += "\n";
+    }
+    final_pgn_content = re;
+    console.log(re);
 }
 
 socket.on('opponentScore', function (msg) {
@@ -629,3 +697,12 @@ socket.on('opponent_independent_score', function(msg){
 
     }
 });
+
+socket.on('file_created', function (msg) {
+    pgn_file_name = msg.pgn_file_name;
+    document.querySelector('#DLButton').hidden = false;
+});
+
+function downloadGame(){
+    location.href = "/download?" + $.param({file_name: pgn_file_name});
+}

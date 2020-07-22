@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socket = require('socket.io');
 const queues = new Map();
+const fs = require('fs');
 
 const port = process.env.PORT || 8080;
 //Call for database;
@@ -246,8 +247,10 @@ app.get('/topRank', (request, response) => {
                 response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.get("rank1")}&rank2=${rankData.get("rank2")}&rank3=${rankData.get("rank3")}&rank4=${rankData.get("rank4")}&rank5=${rankData.get("rank5")}&rank6=${rankData.get("rank6")}&rank7=${rankData.get("rank7")}&rank8=${rankData.get("rank8")}&rank9=${rankData.get("rank9")}&rank10=${rankData.get("rank10")}`);
             }
         })
+});
 
-
+app.get('/download', function (request, response){
+    response.sendFile(__dirname + `/cfn/${request.query.file_name}`);
 });
 
 io.on('connection', function (socket) {
@@ -283,6 +286,27 @@ io.on('connection', function (socket) {
             }
         }
         console.log(playerId + ' disconnected');
+
+    });
+
+    socket.on('pgn_file', function (msg) {
+        let username = msg.username;
+        let game_type = msg.game_type;
+        let content = msg.file_content;
+        content = username + '\n' + content;
+        let date = new Date().toISOString().replace(/T/, '_').replace(/\..+/, '');
+        date = date.replace(/-|:/g,'_');
+        let filename = `${username}_${game_type}_${date}.cfn`;
+        let filepath = __dirname+`/cfn/`+ filename;
+        fs.writeFile(filepath,content,{flag:"wx"}, function (err) {
+            if (err) return console.log(err);
+            console.log(filename+" created");
+            msg = {
+                pgn_file_name: filename
+            };
+            socket.emit('file_created', msg);
+        })
+
 
     });
 
