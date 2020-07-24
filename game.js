@@ -29,6 +29,7 @@ var timers = Array(games.length); // Same length timers array contains all timer
 var opponentTimers = Array(games.length); // Same length timers array contains all opponent timers corresponding to each board.
 var gameOverBoards = Array(games.length).fill(false);
 var timeUpStatusArray = Array(games.length).fill(false);
+var resignStatusArray = Array(games.length).fill(false);
 
 var socket = io(); // calls the io.on('connection') function in server.
 
@@ -49,7 +50,7 @@ var button = document.getElementById("button");
 var state = document.getElementById('state');
 var forkButton= document.getElementById('forkButton_1');
 // let timeUp=false;
-let resigned= false;
+// let resigned= false;
 let isGameOver= false;
 
 var connect = function(){
@@ -289,7 +290,7 @@ function updateStatus (id) {
     if(isGameOver){
         console.log("Game Over!");
         status = 'Game over for board '+ id;
-    }else if(resigned){
+    }else if(resignStatusArray[id-1]){
         console.log("Resigned board= ", id);
         status = 'Game over, resigned by ' + moveColor
     }else if(timeUpStatusArray[id-1]){
@@ -493,13 +494,15 @@ function sendResignRequest(parentHtml){
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
     let msg = {roomId: roomId, ID:id};
     socket.emit('resign',msg);
-    resigned=true;
+    // resigned=true;
+    resignStatusArray[id-1]=true;
     winners.push(0);
     gameOverForBoard(msg);
 }
 
 socket.on("opponentResign", function(msg){
-    resigned= true;
+    // resigned= true;
+    resignStatusArray[msg.ID-1]=true;
     winners.push(1);
     gameOverForBoard(msg);
 });
