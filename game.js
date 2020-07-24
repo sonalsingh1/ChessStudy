@@ -47,9 +47,9 @@ var roomNumber = document.getElementById("roomNumbers");
 var button = document.getElementById("button");
 var state = document.getElementById('state');
 var forkButton= document.getElementById('forkButton_1');
-var timeUp=false;
-var resigned= false;
-var isGameOver= false;
+let timeUp=false;
+let resigned= false;
+let isGameOver= false;
 
 var connect = function(){
     let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7];// should be of format: bullet_1_0_0_chess
@@ -282,6 +282,7 @@ function updateStatus (id) {
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
     }
+
     if(isGameOver){
         console.log("Game Over!");
         status = 'Game over for board '+ id;
@@ -413,9 +414,10 @@ function startTimer(id, timeObject) {
         $('#timer_' + id + ' .values').html('TIME UP!!');
         let msg = {roomId: roomId, ID:id};
         winners.push(0);
-        socket.emit('timeUp', msg);
         gameOverForBoard(msg);
         timeUp=true;
+        updateStatus(msg.ID);
+        socket.emit('timeUp', msg);
     });
 }
 
@@ -442,6 +444,8 @@ function gameOverForBoard(msg){
         socket.emit('totalGameOver',roomId);
     }
         timers[msg.ID-1].stop();
+        console.log("gameOverForBoard here by player="+msg.ID);
+        console.log("value of timeUp flag="+timeUp);
         updateStatus(msg.ID);
         disableBoardButton(msg.ID);
         gameOverBoards[msg.ID-1] = true;
