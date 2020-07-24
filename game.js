@@ -28,6 +28,7 @@ var boards = Array(games.length); // Same length boards array contains all game 
 var timers = Array(games.length); // Same length timers array contains all timers corresponding to each board.
 var opponentTimers = Array(games.length); // Same length timers array contains all opponent timers corresponding to each board.
 var gameOverBoards = Array(games.length).fill(false);
+var timeUpStatusArray = Array(games.length).fill(false);
 
 var socket = io(); // calls the io.on('connection') function in server.
 
@@ -47,7 +48,7 @@ var roomNumber = document.getElementById("roomNumbers");
 var button = document.getElementById("button");
 var state = document.getElementById('state');
 var forkButton= document.getElementById('forkButton_1');
-let timeUp=false;
+// let timeUp=false;
 let resigned= false;
 let isGameOver= false;
 
@@ -281,7 +282,9 @@ function updateStatus (id) {
     var moveColor = 'White';
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
-    }
+    };
+    console.log("id="+id);
+    console.log("update status timeUp Array:"+ timeUpStatusArray);
 
     if(isGameOver){
         console.log("Game Over!");
@@ -289,7 +292,7 @@ function updateStatus (id) {
     }else if(resigned){
         console.log("Resigned board= ", id);
         status = 'Game over, resigned by ' + moveColor
-    }else if(timeUp){
+    }else if(timeUpStatusArray[id-1]){
         status = 'Game over, time Up for ' + moveColor
     }else {
         // checkmate?
@@ -415,7 +418,9 @@ function startTimer(id, timeObject) {
         let msg = {roomId: roomId, ID:id};
         winners.push(0);
         gameOverForBoard(msg);
-        timeUp=true;
+        // timeUp=true;
+        timeUpStatusArray[id-1]=true;
+        console.log("targetAchieved timeUpStatusArray="+timeUpStatusArray);
         updateStatus(msg.ID);
         socket.emit('timeUp', msg);
     });
@@ -445,7 +450,7 @@ function gameOverForBoard(msg){
     }
         timers[msg.ID-1].stop();
         console.log("gameOverForBoard here by player="+msg.ID);
-        console.log("value of timeUp flag="+timeUp);
+        console.log("value of timeUp flag="+timeUpStatusArray[msg.ID-1]);
         updateStatus(msg.ID);
         disableBoardButton(msg.ID);
         gameOverBoards[msg.ID-1] = true;
@@ -462,7 +467,8 @@ function disableBoardButton(id){
 socket.on('timeUp', function (msg) {
     if(msg.roomId===roomId) {
         console.log("Received opponent time up for ", msg.ID);
-        timeUp=true;
+        // timeUp=true;
+        timeUpStatusArray[msg.ID-1]=true;
         winners.push(1);
         gameOverForBoard(msg);
     }
