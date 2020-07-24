@@ -4,7 +4,9 @@ var param = Array(8);
 var gameOverBoardCount=0;
 var self_elo, opponent_elo;
 var final_pgn_content = "";
+var oppo_content;
 var pgn_file_name;
+var old_elo, new_elo;
 
 getPara();
 console.log(param);
@@ -284,8 +286,6 @@ function updateStatus (id) {
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
     };
-    console.log("id="+id);
-    console.log("update status timeUp Array:"+ timeUpStatusArray);
 
     if(isGameOver){
         console.log("Game Over!");
@@ -588,18 +588,10 @@ function totalGameOver(){
         };
         socket.emit('independent_score', msg);
     }
-    create_pgn_content();
-    let msg = {
-        file_content: final_pgn_content,
-        username: param[5],
-        game_type: `${param[1]}_${param[2]}_${param[3]}`
-    };
-    socket.emit('pgn_file',msg);
-    console.log(final_pgn_content);
 }
 // create_pgn_content();
 function create_pgn_content(){
-    let re = "";
+    let re = `${color} ${param[5]}: ELO - ${old_elo}` + "\n";
     for (let i = 0; i <games.length ; i++) {
         let timestamp = pgn_file_content[i].trim().split(' ');
         if(i !== 0){
@@ -613,13 +605,10 @@ function create_pgn_content(){
         if(pgn.includes('[')){
             pgn = pgn.slice(pgn.lastIndexOf(']')+1,pgn.length);
         }
-        console.log(pgn);
         let regex = /[0-9]+\./g;
         let index_array = pgn.match(regex);
         regex = /(\.\.\.)|([a-zA-Z]+[0-9]+\+?)/g;
         let move_array = pgn.match(regex);
-        console.log(index_array);
-        console.log(move_array);
         if (!move_array) continue;
         let k = 0, z = 0;
         for (let j = 0; j <move_array.length ; j++) {
@@ -640,6 +629,8 @@ function create_pgn_content(){
         }
         re += "\n";
     }
+    re = re.trim() + "\n";
+    re += `${color} ${param[5]}: ELO - ${new_elo}`;
     final_pgn_content = re;
     console.log(re);
 }
@@ -667,8 +658,8 @@ socket.on('opponentScore', function (msg) {
 
 socket.on('new_elo',function (msg) {
     if(roomId === msg.roomId) {
-        let old_elo = msg.old_elo;
-        let new_elo = msg.new_elo;
+        old_elo = msg.old_elo;
+        new_elo = msg.new_elo;
         if (old_elo < new_elo) { // increase value
             let str = `ELO: ${old_elo} + ${new_elo - old_elo} = ${new_elo}`;
             $('#elo').text(str);
@@ -685,12 +676,43 @@ socket.on('new_elo',function (msg) {
             $('#elo').attr('hidden', false);
             $('#elo').css('color', 'orange');
         }
+
+        create_pgn_content();
+        msg = {
+            file_content: final_pgn_content,
+            roomId:roomId
+        };
+        socket.emit('file_content',msg);
+        console.log(final_pgn_content);
     }
 });
 
+socket.on('opponent_file_content', function (msg) {
+    if(msg.roomId === roomId){
+        oppo_content = msg.file_content;
+        waitForElo();
+    }
+});
+
+function waitForElo(){
+    if(old_elo && new_elo){
+        //variable exists, do what you want
+        let content = `${color} ${param[5]}: ELO - ${old_elo}`+"\n"+oppo_content;
+        content = content + '\n'+`${color} ${param[5]}: ELO - ${new_elo}`;
+        let msg = {
+            file_content: content,
+            username: param[5],
+            game_type: `${param[1]}_${param[2]}_${param[3]}`
+        };
+        socket.emit('pgn_file',msg);
+    }
+    else{
+        setTimeout(waitForElo, 250);
+    }
+}
+
 socket.on('opponent_independent_score', function(msg){
     if(msg.roomId === roomId) {
-        console.log(msg);
         // message from myself
         if(msg.username === param[5]) {
             self_elo = msg.old_elo;

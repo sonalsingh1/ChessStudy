@@ -286,14 +286,17 @@ io.on('connection', function (socket) {
             }
         }
         console.log(playerId + ' disconnected');
+        console.log(queues)
+    });
 
+    socket.on('file_content', function (msg) {
+        socket.broadcast.emit('opponent_file_content', msg);
     });
 
     socket.on('pgn_file', function (msg) {
         let username = msg.username;
         let game_type = msg.game_type;
         let content = msg.file_content;
-        content = username + '\n' + content;
         let date = new Date().toISOString().replace(/T/, '_').replace(/\..+/, '');
         date = date.replace(/-|:/g,'_');
         let filename = `${username}_${game_type}_${date}.cfn`;
@@ -306,8 +309,6 @@ io.on('connection', function (socket) {
             };
             socket.emit('file_created', msg);
         })
-
-
     });
 
     socket.on('fork', function (msg) {
