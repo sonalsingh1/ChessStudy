@@ -4,15 +4,30 @@ const socket = require('socket.io');
 const queues = new Map();
 const fs = require('fs');
 
-const port = process.env.PORT || 8080;
-//Call for database;
-const mysql = require('mysql');
-const con = mysql.createConnection({
-    host: "localhost",
-    user: "ChessUser",
-    password: "Queen123",
+// const port = process.env.PORT || 8080;
+// //Call for database;
+// const mysql = require('mysql');
+// const con = mysql.createConnection({
+//     host: "localhost",
+//     user: "ChessUser",
+//     password: "Queen123",
+//     database: "chessstudy"
+// });
+
+/**
+ the following configuration is for Heinz Server, DO NOT CHANGE.
+
+ const port = process.env.PORT || 8081;
+ //Call for database;
+ const mysql = require('mysql');
+ const con = mysql.createConnection({
+    host: "127.0.0.1",
+    user: "jiechenx",
+    password: 'Phah"n0r',
     database: "chessstudy"
 });
+
+ */
 
 var app = express();
 const server = http.createServer(app);
@@ -276,16 +291,8 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('move', msg);
     });
 
-    socket.on('control', function(msg){
-        socket.broadcast.emit('control_p2', msg);
-    });
-
-    socket.on('control_p3', function (msg){
-       socket.broadcast.emit('control_p4', msg);
-    });
-
-    socket.on('control_p5', function (msg){
-       socket.broadcast.emit('control_p6', msg);
+    socket.on('start', function (msg){
+       socket.broadcast.emit('start', msg);
     });
 
     socket.on('play', function (msg) {

@@ -7,7 +7,6 @@ var final_pgn_content = "";
 var oppo_content;
 var pgn_file_name;
 var old_elo, new_elo;
-var rtt, startTime, endTime;
 
 getPara();
 console.log(param);
@@ -76,35 +75,6 @@ socket.on('full', function (msg) {
         window.location.assign(window.location.href+ 'full.html');
 });
 
-socket.on('play', function (msg) {
-    if (msg === roomId) {
-        play = false;
-        state.innerHTML = "Game in progress";
-        // document.querySelector(".msg").hidden = true;
-        
-        // show fork button
-        forkButton.hidden=false;
-
-        // show pgn, fen, and status
-        document.querySelector('.hidden').hidden=false;
-        // change fork available counts
-        document.querySelector("#forkCount").hidden = false;
-        document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-        if(parseInt(param[3]) === 0) {
-            document.querySelector("#forkButton_1").disabled = true;
-        } else {
-            document.querySelector("#forkButton_1").disabled = false;
-        }
-        // start timer (first game) for this player
-        startTimer(1, {minutes: parseInt(param[1])});
-        startOpponentTimer(1,{minutes: parseInt(param[1])});
-        if (color === 'black') {
-            timers[0].pause();
-            forkButton.disabled = true;
-        } else opponentTimers[0].pause();
-    }
-});
-
 socket.on('move', function (msg) {
     if (msg.room === roomId) {
         let fork = document.querySelector("#forkButton_"+msg.boardId);
@@ -113,11 +83,10 @@ socket.on('move', function (msg) {
         boards[msg.boardId-1].position(games[msg.boardId-1].fen());
         updateStatus(msg.boardId);
 
-        increaseTime(msg.boardId,true); // increment opponent timer
+        let oppo_time = msg.oppo_time;
+        replaceOppoTime(oppo_time, msg.boardId);
         opponentTimers[msg.boardId-1].pause(); // pause the opponent timer
-        setTimeout(function (){
-            timers[msg.boardId-1].start(); // resume the timer
-        }, 0.5*rtt);
+        timers[msg.boardId-1].start(); // resume the timer
 
         // if there still more fork for the user
         if (parseInt(param[3]) > 0) {
@@ -125,6 +94,16 @@ socket.on('move', function (msg) {
         }
     }
 });
+
+function replaceOppoTime(oppoTime, id){
+    let timer = opponentTimers[id-1];
+    let new_min = oppoTime.minutes, new_sec = oppoTime.seconds, new_tenth = oppoTime.secondTenths;
+    timer.stop();
+    timer.start({countdown: true, startValues: {minutes: new_min,
+            seconds: new_sec,
+            secondTenths: new_tenth}, precision: 'secondTenths'});
+    $('#opponentTimer_'+ id + ' .values').html(timer.getTimeValues().toString());
+}
 
 var removeGreySquares = function (id) {
     $('#board_' + id + ' .square-55d63').css('background', '');
@@ -169,30 +148,27 @@ var onDrop = function (source, target) {
     if (games[id-1].game_over()) {
         state.innerHTML = 'GAME OVER';
         socket.emit('gameOver', roomId);
-        // timers[id-1].pause();
-        // opponentTimers[id-1].pause();
     }
 
     // illegal move
     if (move === null) return 'snapback';
     else {
-        console.log(timeUpStatusArray);
         if (!timeUpStatusArray[id - 1]) {
             pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
             updateStatus(id);
+            // increase my own timer
+            increaseTime(id);
+            timers[id - 1].pause(); // pause the timer immediately
             socket.emit('move', {
                 move: move,
                 board: games[0].fen(),
                 room: roomId,
                 boardId: this.ID,
-                pgn: pgn_file_content[id - 1]
+                pgn: pgn_file_content[id - 1],
+                oppo_time: timers[id - 1].getTimeValues()
             });
-            setTimeout(function () {
-                increaseTime(id, false);
-                timers[id - 1].pause(); // pause the timer
-                opponentTimers[id - 1].start();
-                fork.disabled = true; // disable the fork
-            }, 0.5 * rtt);
+            opponentTimers[id - 1].start();
+            fork.disabled = true; // disable the fork
         }
     }
 };
@@ -238,18 +214,30 @@ socket.on('player', (msg) => {
 
     if(players === 2){
         play = false;
-
-        startTime = new Date().getTime();
-        console.log(startTime);
         let msg = {
           roomId:roomId
         };
-        socket.emit('control', msg);
+        socket.emit('start', msg);
+        state.innerHTML = "Game in Progress";
+        // document.querySelector(".msg").hidden = true;
+        forkButton.disabled=false;
+        forkButton.hidden=false;
+        document.querySelector('.hidden').hidden=false;
+
+        // show fork count
+        document.querySelector("#forkCount").hidden = false;
+        document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
+        document.querySelector("#forkButton_1").disabled = parseInt(param[3]) === 0;
+        // Start the timer (first game) for this player
+        startTimer(1, {minutes: parseInt(param[1])});
+        timers[0].pause();
+        startOpponentTimer(1,{minutes: parseInt(param[1])});
+        opponentTimers[0].pause();
+        if (color === 'black') forkButton.disabled = true;
     }
-    else
+    else {
         state.innerHTML = "Waiting for Second player";
-
-
+    }
     var cfg = {
         orientation: color,
         draggable: true,
@@ -264,82 +252,31 @@ socket.on('player', (msg) => {
     boards[0] = ChessBoard('board_1', cfg);
 });
 
-socket.on('control_p2', function (msg){
+socket.on('start', function (msg){
    if(msg.roomId === roomId){
-       startTime = new Date().getTime();
-       socket.emit('control_p3', msg);
+       play = false;
+       let msg = {
+           roomId:roomId
+       };
+       state.innerHTML = "Game in Progress";
+       // document.querySelector(".msg").hidden = true;
+       forkButton.disabled=false;
+       forkButton.hidden=false;
+       document.querySelector('.hidden').hidden=false;
+
+       // show fork count
+       document.querySelector("#forkCount").hidden = false;
+       document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
+       document.querySelector("#forkButton_1").disabled = parseInt(param[3]) === 0;
+       // Start the timer (first game) for this player
+       startTimer(1, {minutes: parseInt(param[1])});
+       timers[0].pause();
+       startOpponentTimer(1,{minutes: parseInt(param[1])});
+       opponentTimers[0].pause();
+       if (color === 'black') forkButton.disabled = true;
    }
 });
 
-// only BLACK side will receive this
-socket.on('control_p4', function (msg){
-   if (msg.roomId === roomId){
-       endTime = new Date().getTime();
-       console.log(endTime);
-       socket.emit('control_p5', msg);
-       rtt = endTime - startTime;
-       console.log(`ping: ${rtt}ms`);
-
-       setTimeout(function (){
-           state.innerHTML = "Game in Progress";
-           // document.querySelector(".msg").hidden = true;
-           forkButton.disabled=false;
-           forkButton.hidden=false;
-           document.querySelector('.hidden').hidden=false;
-
-           // show fork count
-           document.querySelector("#forkCount").hidden = false;
-           document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-           if(parseInt(param[3]) === 0) {
-               document.querySelector("#forkButton_1").disabled = true;
-           } else {
-               document.querySelector("#forkButton_1").disabled = false;
-           }
-           // Start the timer (first game) for this player
-           startTimer(1, {minutes: parseInt(param[1])});
-           startOpponentTimer(1,{minutes: parseInt(param[1])});
-           if (color === 'black') {
-               timers[0].pause();
-               forkButton.disabled = true;
-           } else opponentTimers[0].pause();
-       }, 1.5*rtt);
-   }
-});
-
-// only WHITE side will receive this
-socket.on('control_p6', function (msg){
-    if (msg.roomId === roomId){
-        endTime = new Date().getTime();
-        rtt = endTime - startTime;
-        console.log(`ping: ${rtt}ms`);
-        setTimeout(function (){
-            play = false;
-            state.innerHTML = "Game in progress";
-            // document.querySelector(".msg").hidden = true;
-
-            // show fork button
-            forkButton.hidden=false;
-
-            // show pgn, fen, and status
-            document.querySelector('.hidden').hidden=false;
-            // change fork available counts
-            document.querySelector("#forkCount").hidden = false;
-            document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-            if(parseInt(param[3]) === 0) {
-                document.querySelector("#forkButton_1").disabled = true;
-            } else {
-                document.querySelector("#forkButton_1").disabled = false;
-            }
-            // start timer (first game) for this player
-            startTimer(1, {minutes: parseInt(param[1])});
-            startOpponentTimer(1,{minutes: parseInt(param[1])});
-            if (color === 'black') {
-                timers[0].pause();
-                forkButton.disabled = true;
-            } else opponentTimers[0].pause();
-        }, rtt);
-    }
-});
 
 socket.on('player_fork', function (msg){
     fork(msg.ID);
@@ -478,7 +415,7 @@ var sendForkRequest = function (parentHtml) {
 function startTimer(id, timeObject) {
     timers[id-1] = new easytimer.Timer();
     let timer = timers[id-1];
-    timer.start({countdown: true, startValues: timeObject});
+    timer.start({countdown: true, startValues: timeObject, precision:'secondTenths'});
     $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
     timer.addEventListener('secondsUpdated', function (e) {
         $('#timer_'+ id + ' .values').html(timer.getTimeValues().toString());
@@ -500,7 +437,7 @@ function startTimer(id, timeObject) {
 function startOpponentTimer(id, timeObject) {
     opponentTimers[id-1] = new easytimer.Timer();
     let timer = opponentTimers[id-1];
-    timer.start({countdown: true, startValues: timeObject});
+    timer.start({countdown: true,precision:'secondTenths' ,startValues: timeObject});
     $('#opponentTimer_' + id + ' .values').html(timer.getTimeValues().toString());
     timer.addEventListener('secondsUpdated', function (e) {
         $('#opponentTimer_'+ id + ' .values').html(timer.getTimeValues().toString());
@@ -602,16 +539,13 @@ socket.on('drawAccepted', function(msg){
     }
 });
 
-function increaseTime(id,oppo){
+function increaseTime(id){
     if (timeUpStatusArray[id-1]) return;
-    let timer;
-    if(oppo === false) {
-        timer = timers[id - 1];
-    } else timer = opponentTimers[id-1];
+    let timer = timers[id - 1];
 
     let timeIncrement = parseInt(param[2]);
     let new_time = timer.getTimeValues();
-    let new_min = new_time.minutes, new_sec = new_time.seconds;
+    let new_min = new_time.minutes, new_sec = new_time.seconds, new_tenth = new_time.secondTenths;
     let s = new_time.seconds + timeIncrement;
     if (s >= 60) { //need increase in minutes
         new_min += Math.floor(s / 60);
@@ -621,13 +555,9 @@ function increaseTime(id,oppo){
     }
     timer.stop();
     timer.start({countdown: true, startValues: {minutes: new_min,
-                                                seconds: new_sec}});
-    if (oppo === false) {
-        $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
-    } else{
-        $('opponentTime_'+id+' .values').html(timer.getTimeValues().toString());
-    }
-
+                                                seconds: new_sec,
+                                                secondTenths: new_tenth}, precision: 'secondTenths'});
+    $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
 }
 
 // The entire game is over, including all boards.
