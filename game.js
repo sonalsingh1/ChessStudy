@@ -7,6 +7,7 @@ var final_pgn_content = "";
 var oppo_content;
 var pgn_file_name;
 var old_elo, new_elo;
+var rtt, startTime, endTime;
 
 getPara();
 console.log(param);
@@ -228,30 +229,38 @@ socket.on('player', (msg) => {
     plno.innerHTML = 'Player ' + msg.players + " : " + color;
     players = msg.players;
 
-    if(players == 2){
+    if(players === 2){
         play = false;
-        socket.emit('play', msg.roomId);
-        state.innerHTML = "Game in Progress";
-        // document.querySelector(".msg").hidden = true;
-        forkButton.disabled=false;
-        forkButton.hidden=false;
-        document.querySelector('.hidden').hidden=false;
 
-        // show fork count
-        document.querySelector("#forkCount").hidden = false;
-        document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-        if(parseInt(param[3]) === 0) {
-            document.querySelector("#forkButton_1").disabled = true;
-        } else {
-            document.querySelector("#forkButton_1").disabled = false;
-        }
-        // Start the timer (first game) for this player
-        startTimer(1, {minutes: parseInt(param[1])});
-        startOpponentTimer(1,{minutes: parseInt(param[1])});
-        if (color === 'black') {
-            timers[0].pause();
-            forkButton.disabled = true;
-        } else opponentTimers[0].pause();
+        startTime = new Date().getMilliseconds();
+        console.log(startTime);
+        let msg = {
+          roomId:roomId
+        };
+        socket.emit('control', msg);
+        // socket.emit('play', msg.roomId);
+        //
+        // state.innerHTML = "Game in Progress";
+        // // document.querySelector(".msg").hidden = true;
+        // forkButton.disabled=false;
+        // forkButton.hidden=false;
+        // document.querySelector('.hidden').hidden=false;
+        //
+        // // show fork count
+        // document.querySelector("#forkCount").hidden = false;
+        // document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
+        // if(parseInt(param[3]) === 0) {
+        //     document.querySelector("#forkButton_1").disabled = true;
+        // } else {
+        //     document.querySelector("#forkButton_1").disabled = false;
+        // }
+        // // Start the timer (first game) for this player
+        // startTimer(1, {minutes: parseInt(param[1])});
+        // startOpponentTimer(1,{minutes: parseInt(param[1])});
+        // if (color === 'black') {
+        //     timers[0].pause();
+        //     forkButton.disabled = true;
+        // } else opponentTimers[0].pause();
     }
     else
         state.innerHTML = "Waiting for Second player";
@@ -269,6 +278,82 @@ socket.on('player', (msg) => {
         ID: 1
     };
     boards[0] = ChessBoard('board_1', cfg);
+});
+
+socket.on('control_p2', function (msg){
+   if(msg.roomId === roomId){
+       startTime = new Date().getMilliseconds();
+       socket.emit('control_p3', msg);
+   }
+});
+
+// only BLACK side will receive this
+socket.on('control_p4', function (msg){
+   if (msg.roomId === roomId){
+       endTime = new Date().getMilliseconds();
+       socket.emit('control_p5', msg);
+       rtt = endTime - startTime;
+       console.log(`ping: ${rtt}ms`);
+
+       setTimeout(function (){
+           state.innerHTML = "Game in Progress";
+           // document.querySelector(".msg").hidden = true;
+           forkButton.disabled=false;
+           forkButton.hidden=false;
+           document.querySelector('.hidden').hidden=false;
+
+           // show fork count
+           document.querySelector("#forkCount").hidden = false;
+           document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
+           if(parseInt(param[3]) === 0) {
+               document.querySelector("#forkButton_1").disabled = true;
+           } else {
+               document.querySelector("#forkButton_1").disabled = false;
+           }
+           // Start the timer (first game) for this player
+           startTimer(1, {minutes: parseInt(param[1])});
+           startOpponentTimer(1,{minutes: parseInt(param[1])});
+           if (color === 'black') {
+               timers[0].pause();
+               forkButton.disabled = true;
+           } else opponentTimers[0].pause();
+       }, 1.5*rtt);
+   }
+});
+
+// only WHITE side will receive this
+socket.on('control_p6', function (msg){
+    if (msg.roomId === roomId){
+        endTime = new Date().getMilliseconds();
+        rtt = endTime - startTime;
+        console.log(`ping: ${rtt}ms`);
+        setTimeout(function (){
+            play = false;
+            state.innerHTML = "Game in progress";
+            // document.querySelector(".msg").hidden = true;
+
+            // show fork button
+            forkButton.hidden=false;
+
+            // show pgn, fen, and status
+            document.querySelector('.hidden').hidden=false;
+            // change fork available counts
+            document.querySelector("#forkCount").hidden = false;
+            document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
+            if(parseInt(param[3]) === 0) {
+                document.querySelector("#forkButton_1").disabled = true;
+            } else {
+                document.querySelector("#forkButton_1").disabled = false;
+            }
+            // start timer (first game) for this player
+            startTimer(1, {minutes: parseInt(param[1])});
+            startOpponentTimer(1,{minutes: parseInt(param[1])});
+            if (color === 'black') {
+                timers[0].pause();
+                forkButton.disabled = true;
+            } else opponentTimers[0].pause();
+        }, 1*rtt);
+    }
 });
 
 socket.on('player_fork', function (msg){

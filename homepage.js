@@ -1,6 +1,6 @@
 const urlParams = new URLSearchParams(window.location.search);
-let username = urlParams.get('username');
-let password = urlParams.get('password');
+var username = urlParams.get('username');
+var password = urlParams.get('password');
 if(username && password) {
     $('#user').text(`User Name: ${username}`);
 } else {
@@ -70,5 +70,18 @@ function displayTopRankings() {
 
 function onLogOut() {
     location.href = "/?" + $.param("");
+}
+
+function startChallenge(){
+    let opponentUserName = prompt('Please enter opponent User Name: ', 'User Name');
+    if(opponentUserName){ // not null input
+        console.log(opponentUserName);
+        let para = {
+            username: username,
+            challenge_user: opponentUserName
+        }
+        location.href = "/challenge?" + $.param(para);
+        console.log(location.href);
+    }
 }
 

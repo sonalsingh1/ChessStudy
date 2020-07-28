@@ -253,6 +253,11 @@ app.get('/download', function (request, response){
     response.sendFile(__dirname + `/cfn/${request.query.file_name}`);
 });
 
+// handle user sending challenges
+app.get('/challenge', function (request, response){
+
+});
+
 io.on('connection', function (socket) {
     var color;
     var playerId;//var playerId =  Math.floor((Math.random() * 100) + 1); // extracted from DB
@@ -269,6 +274,18 @@ io.on('connection', function (socket) {
 
     socket.on('move', function (msg) {
         socket.broadcast.emit('move', msg);
+    });
+
+    socket.on('control', function(msg){
+        socket.broadcast.emit('control_p2', msg);
+    });
+
+    socket.on('control_p3', function (msg){
+       socket.broadcast.emit('control_p4', msg);
+    });
+
+    socket.on('control_p5', function (msg){
+       socket.broadcast.emit('control_p6', msg);
     });
 
     socket.on('play', function (msg) {
