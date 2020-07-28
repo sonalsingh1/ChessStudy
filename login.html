@@ -28,6 +28,8 @@
 			text-align: center;
 			font-size: 14px;
 			position: center;
+			padding-left: 150px;
+			padding-right: 150px;
 		}
 	</style>
 </head>
@@ -51,7 +53,20 @@
 	<br>
 	<label id="msg" class="console"></label>
 	<br><br><br><br>
-	<div class="description">some description</div>
+	<div class="description">
+		It’s your turn to move. You considering several candidate moves. You aren’t sure which one is better. They may even all seem great. Why don’t you play all of them?
+		<br><br>
+		Welcome to Chess-fork! This variant of chess allows the player with the move to start a new game from the current position (with the current clocks) and then games run in parallel.
+		<br><br>
+		Chess-fork games are defined using x+y*z, where x is the time on the clock when the game starts (in minutes), y is the increment per move from move 1 (in seconds), and z is the number of forks available to each player.
+		<br><br>
+		So, who wins the game in Chess-fork? It depends! If you play an “aggregate rating” game, then you score 1 point in each board you win, 0.5 points in each board you draw and 0 points in each board you lose. You win the game if you score more points than your opponent when adding up across boards. ELO ratings are then adjusted once according to this game outcome.
+		<br><br>
+		If you play an “independent rating” game, then each board is an independent game. You win, draw or lose in each board and your ELO rating is adjusted several times according to the outcome of the game in each board (as games finish).
+		<br><br>
+		What if you don’t care with your ELO rating? Just have fun and play unrated games! Come join us and play Chess-fork! This is a beta version of this website (for example, the Chess960-fork is not yet available). Bear with us and send us comments and suggestions for improvement at fork.chess@gmail.com.
+		<br><br>
+	</div>
 
 
 	<script src="./login.js"></script>

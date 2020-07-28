@@ -112,9 +112,12 @@ socket.on('move', function (msg) {
         games[msg.boardId-1].move(msg.move);
         boards[msg.boardId-1].position(games[msg.boardId-1].fen());
         updateStatus(msg.boardId);
-        timers[msg.boardId-1].start(); // resume the timer
+
         increaseTime(msg.boardId,true); // increment opponent timer
         opponentTimers[msg.boardId-1].pause(); // pause the opponent timer
+        setTimeout(function (){
+            timers[msg.boardId-1].start(); // resume the timer
+        }, 0.5*rtt);
 
         // if there still more fork for the user
         if (parseInt(param[3]) > 0) {
@@ -166,27 +169,31 @@ var onDrop = function (source, target) {
     if (games[id-1].game_over()) {
         state.innerHTML = 'GAME OVER';
         socket.emit('gameOver', roomId);
-        timers[id-1].stop();
-        opponentTimers[id-1].stop();
+        // timers[id-1].pause();
+        // opponentTimers[id-1].pause();
     }
 
     // illegal move
     if (move === null) return 'snapback';
     else {
-        pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
-        updateStatus(id);
-        socket.emit('move', {
-            move: move,
-            board: games[0].fen(),
-            room: roomId,
-            boardId: this.ID,
-            pgn: pgn_file_content[id - 1]
-        });
-        increaseTime(id, false);
-        timers[id - 1].pause(); // pause the timer
-        opponentTimers[id - 1].start();
-        fork.disabled = true; // disable the fork
-        // console.log(this.ID)
+        console.log(timeUpStatusArray);
+        if (!timeUpStatusArray[id - 1]) {
+            pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
+            updateStatus(id);
+            socket.emit('move', {
+                move: move,
+                board: games[0].fen(),
+                room: roomId,
+                boardId: this.ID,
+                pgn: pgn_file_content[id - 1]
+            });
+            setTimeout(function () {
+                increaseTime(id, false);
+                timers[id - 1].pause(); // pause the timer
+                opponentTimers[id - 1].start();
+                fork.disabled = true; // disable the fork
+            }, 0.5 * rtt);
+        }
     }
 };
 
@@ -232,35 +239,12 @@ socket.on('player', (msg) => {
     if(players === 2){
         play = false;
 
-        startTime = new Date().getMilliseconds();
+        startTime = new Date().getTime();
         console.log(startTime);
         let msg = {
           roomId:roomId
         };
         socket.emit('control', msg);
-        // socket.emit('play', msg.roomId);
-        //
-        // state.innerHTML = "Game in Progress";
-        // // document.querySelector(".msg").hidden = true;
-        // forkButton.disabled=false;
-        // forkButton.hidden=false;
-        // document.querySelector('.hidden').hidden=false;
-        //
-        // // show fork count
-        // document.querySelector("#forkCount").hidden = false;
-        // document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
-        // if(parseInt(param[3]) === 0) {
-        //     document.querySelector("#forkButton_1").disabled = true;
-        // } else {
-        //     document.querySelector("#forkButton_1").disabled = false;
-        // }
-        // // Start the timer (first game) for this player
-        // startTimer(1, {minutes: parseInt(param[1])});
-        // startOpponentTimer(1,{minutes: parseInt(param[1])});
-        // if (color === 'black') {
-        //     timers[0].pause();
-        //     forkButton.disabled = true;
-        // } else opponentTimers[0].pause();
     }
     else
         state.innerHTML = "Waiting for Second player";
@@ -282,7 +266,7 @@ socket.on('player', (msg) => {
 
 socket.on('control_p2', function (msg){
    if(msg.roomId === roomId){
-       startTime = new Date().getMilliseconds();
+       startTime = new Date().getTime();
        socket.emit('control_p3', msg);
    }
 });
@@ -290,7 +274,8 @@ socket.on('control_p2', function (msg){
 // only BLACK side will receive this
 socket.on('control_p4', function (msg){
    if (msg.roomId === roomId){
-       endTime = new Date().getMilliseconds();
+       endTime = new Date().getTime();
+       console.log(endTime);
        socket.emit('control_p5', msg);
        rtt = endTime - startTime;
        console.log(`ping: ${rtt}ms`);
@@ -324,7 +309,7 @@ socket.on('control_p4', function (msg){
 // only WHITE side will receive this
 socket.on('control_p6', function (msg){
     if (msg.roomId === roomId){
-        endTime = new Date().getMilliseconds();
+        endTime = new Date().getTime();
         rtt = endTime - startTime;
         console.log(`ping: ${rtt}ms`);
         setTimeout(function (){
@@ -352,7 +337,7 @@ socket.on('control_p6', function (msg){
                 timers[0].pause();
                 forkButton.disabled = true;
             } else opponentTimers[0].pause();
-        }, 1*rtt);
+        }, rtt);
     }
 });
 
@@ -370,7 +355,7 @@ function updateStatus (id) {
     var moveColor = 'White';
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
-    };
+    }
 
     if(isGameOver){
         console.log("Game Over!");
@@ -534,12 +519,11 @@ function gameOverForBoard(msg){
         totalGameOver();
         socket.emit('totalGameOver',roomId);
     }
-        timers[msg.ID-1].stop();
-        console.log("gameOverForBoard here by player="+msg.ID);
-        console.log("value of timeUp flag="+timeUpStatusArray[msg.ID-1]);
-        updateStatus(msg.ID);
-        disableBoardButton(msg.ID);
-        gameOverBoards[msg.ID-1] = true;
+    timers[msg.ID-1].pause();
+    opponentTimers[msg.ID-1].pause();
+    updateStatus(msg.ID);
+    disableBoardButton(msg.ID);
+    gameOverBoards[msg.ID-1] = true;
 }
 
 // disable all buttons for the specific board
@@ -619,6 +603,7 @@ socket.on('drawAccepted', function(msg){
 });
 
 function increaseTime(id,oppo){
+    if (timeUpStatusArray[id-1]) return;
     let timer;
     if(oppo === false) {
         timer = timers[id - 1];
@@ -637,7 +622,11 @@ function increaseTime(id,oppo){
     timer.stop();
     timer.start({countdown: true, startValues: {minutes: new_min,
                                                 seconds: new_sec}});
-    $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
+    if (oppo === false) {
+        $('#timer_' + id + ' .values').html(timer.getTimeValues().toString());
+    } else{
+        $('opponentTime_'+id+' .values').html(timer.getTimeValues().toString());
+    }
 
 }
 
