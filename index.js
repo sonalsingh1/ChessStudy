@@ -48,7 +48,7 @@ var isRoomFull = new Array(100).fill(false);
 
 
 app.get('/game', (req, res) => {
-    let qName = req.query.gameType + "_" + req.query.startTime + "_" + req.query.timeIncrement + "_" + req.query.forkAvailable+"_"+ req.query.chessOrChess960;//+"_"+ req.query.username;
+    let qName = req.query.gameType + "_" + req.query.startTime + "_" + req.query.timeIncrement + "_" + req.query.forkAvailable+"_"+ req.query.chessOrChess960+"_"+req.query.rate_type;//+"_"+ req.query.username;
     console.log("qname in app.get /game="+qName);
     if (!queues.has(qName)){
         queues.set(qName,[]);
@@ -58,6 +58,29 @@ app.get('/game', (req, res) => {
 
 app.get('/homepage', (req, res) => {
     res.sendFile(__dirname + '/homepage.html');
+});
+
+app.get('/cancel', (req, res) => {
+    //Find the index of matched player
+    let qName= req.query.qName;
+    let playerID= req.query.username;
+    let password= req.query.password;
+    let index=undefined;
+    let queueElementsArray = queues.get(qName);
+    console.log("queue on cancel click:"+ queueElementsArray);
+    for(let i=0;i<queueElementsArray.length;++i){
+        if(playerID===queueElementsArray[i].playerId){
+            index=i;
+            break;
+        }
+    }
+    console.log("cancel index="+index);
+    if(index!=undefined){
+        queues.get(qName).splice(index,1);
+        console.log("Queue after removal of entry at index="+ index);
+        isRoomFull[req.query.roomId]=false;   //Mark the room as not full
+    }
+    res.redirect(`/homepage?username=${playerID}&password=${password}`);
 });
 
 app.get('/', (req, res) => {
@@ -142,7 +165,8 @@ app.get('/verify',function (request, response) {
                         let rate_type = request.query.rate_type;
                         let elo_col = request.query.elo_col;
                         let chessOrChess960= request.query.chessOrChess960;
-                        response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_typ=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}`);
+                        let password= request.query.password;
+                        response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_type=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}&password=${password}`);
                     }
                 } catch (e) {
                     console.log(e);
@@ -595,6 +619,8 @@ io.on('connection', function (socket) {
             }
         }
     }
+
+
 });
 
 

@@ -1,4 +1,4 @@
-var signedIn=false;
+let signedIn=false;
 
 
 var signIn = function(){

@@ -1,5 +1,5 @@
 // the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable, rateType, userName, Chess game type
-var param = Array(8);
+var param = Array(9);
 //This variable contains the total number of boards where the game is over
 var gameOverBoardCount=0;
 var self_elo, opponent_elo;
@@ -57,7 +57,7 @@ var forkButton= document.getElementById('forkButton_1');
 let isGameOver= false;
 
 var connect = function(){
-    let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7];// should be of format: bullet_1_0_0_chess
+    let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7]+"_"+param[4];// should be of format: bullet_1_0_0_chess
     console.log("qName in game.js="+qName);
     room.remove();
     button.remove();
@@ -236,6 +236,8 @@ socket.on('player', (msg) => {
         // show fork count
         document.querySelector("#forkCount").hidden = false;
         document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
+        //hide cancel button
+        document.querySelector('#cancelButton').hidden = true;
         document.querySelector("#forkButton_1").disabled = parseInt(param[3]) === 0;
         // Start the timer (first game) for this player
         startTimer(1, {minutes: parseInt(param[1])});
@@ -280,6 +282,7 @@ socket.on('start', function (msg){
        document.querySelector("#forkCount").hidden = false;
        document.querySelector("#forkCount").innerHTML = "<strong> Fork Available: " + param[3] + "</strong>";
        document.querySelector("#forkButton_1").disabled = parseInt(param[3]) === 0;
+       document.querySelector('#cancelButton').hidden = true;
        // Start the timer (first game) for this player
        startTimer(1, {minutes: parseInt(param[1])});
        timers[0].pause();
@@ -303,7 +306,6 @@ socket.on('player_fork', function (msg){
 
 function updateStatus (id) {
     var status = '';
-
     var $status = $('#status_' + id);
     var $fen = $('#fen_' + id);
     var $pgn = $('#pgn_' + id);
@@ -311,14 +313,14 @@ function updateStatus (id) {
     var moveColor = 'White';
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
-    }
+    };
 
     if(isGameOver){
         console.log("Game Over!");
         status = 'Game over for board '+ id;
     }else if(resignStatusArray[id-1]){
         console.log("Resigned board= ", id);
-        status = 'Game over, resigned by ' + moveColor
+        status = 'Resigned! Game over!';
     }else if(timeUpStatusArray[id-1]){
         status = 'Game over, time Up for ' + moveColor
     }else {
@@ -525,8 +527,7 @@ function sendResignRequest(parentHtml){
     gameOverForBoard(msg);
 }
 
-socket.on("opponentResign", function(msg){
-    // resigned= true;
+socket.on('opponentResign', function(msg){
     resignStatusArray[msg.ID-1]=true;
     winners.push(1);
     gameOverForBoard(msg);
@@ -773,6 +774,17 @@ function downloadGame(){
     location.href = "/download?" + $.param({file_name: pgn_file_name});
 }
 
+function cancelGame(){
+    let username= param[5];
+    let password= param[8];
+    msg={
+        //qName: bullet_1_0_0_chess_aggregate
+        qName : param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7]+"_"+param[4],
+        username: username,
+        password: password
+    };
+    location.href = "/cancel?" + $.param(msg);
+}
 function abort(){
     let msg = {
         roomId: roomId

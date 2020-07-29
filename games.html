@@ -34,6 +34,11 @@
 <body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- <script src="./index.js"></script> -->
+  <!-- <script>
+    var socket = io();
+  </script> -->
+  <button id="cancelButton" class="btn btn-success" onclick="cancelGame()">Cancel</button>
   <div id="player"></div>
   <div id="state">Join Game</div>
   <div id="forkCount" hidden="true">
@@ -83,10 +88,7 @@
       <br><br>
     </div>
   </div>
-
-
   <script src="./game.js"></script>
-
 </body>
 
 
