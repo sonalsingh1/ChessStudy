@@ -81,6 +81,7 @@ socket.on('move', function (msg) {
         if (!started){
             started = true;
             document.querySelector('#AbortBtn').hidden = true;
+            document.querySelector('#AbortLab').hidden = true;
         }
         let fork = document.querySelector("#forkButton_"+msg.boardId);
         pgn_file_content[msg.boardId-1] = msg.pgn;
@@ -162,6 +163,7 @@ var onDrop = function (source, target) {
             // game started, hide the abort button
             started = true;
             document.querySelector('#AbortBtn').hidden = true;
+            document.querySelector('#AbortLab').hidden = true;
         }
         if (!timeUpStatusArray[id - 1]) {
             pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
@@ -248,6 +250,7 @@ socket.on('player', (msg) => {
 
 
         document.querySelector('#AbortBtn').hidden = false;
+        document.querySelector('#AbortLab').hidden = false;
     }
     else {
         state.innerHTML = "Waiting for Second player";
@@ -291,6 +294,7 @@ socket.on('start', function (msg){
        if (color === 'black') forkButton.disabled = true;
 
        document.querySelector('#AbortBtn').hidden = false;
+       document.querySelector('#AbortLab').hidden = false;
        setTimeout(function (){
            if(!started){
                abort();
@@ -764,7 +768,7 @@ socket.on('file_created', function (msg) {
 
 socket.on('abort', function (msg){
    if(roomId === msg.roomId){
-       alert('WHITE player did not make the first move in 20 seconds OR someone chose to abort this game.' +
+       alert('This game has been ABORTED!' +
            '\n\nYou will be redirected to your home page.');
        window.history.back();
    }
