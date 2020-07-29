@@ -4,15 +4,15 @@ const socket = require('socket.io');
 const queues = new Map();
 const fs = require('fs');
 
-// const port = process.env.PORT || 8080;
-// //Call for database;
-// const mysql = require('mysql');
-// const con = mysql.createConnection({
-//     host: "localhost",
-//     user: "ChessUser",
-//     password: "Queen123",
-//     database: "chessstudy"
-// });
+const port = process.env.PORT || 8080;
+//Call for database;
+const mysql = require('mysql');
+const con = mysql.createConnection({
+    host: "localhost",
+    user: "ChessUser",
+    password: "Queen123",
+    database: "chessstudy"
+});
 
 /**
  the following configuration is for Heinz Server, DO NOT CHANGE.
@@ -490,6 +490,10 @@ io.on('connection', function (socket) {
                 con.rollback();
             }
         })
+    });
+
+    socket.on('abort',function (msg){
+       io.emit('abort', msg);
     });
 
     function match(playerId, qName) {

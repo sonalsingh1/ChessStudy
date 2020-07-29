@@ -7,6 +7,7 @@ var final_pgn_content = "";
 var oppo_content;
 var pgn_file_name;
 var old_elo, new_elo;
+var started = false;
 
 getPara();
 console.log(param);
@@ -77,6 +78,10 @@ socket.on('full', function (msg) {
 
 socket.on('move', function (msg) {
     if (msg.room === roomId) {
+        if (!started){
+            started = true;
+            document.querySelector('#AbortBtn').hidden = true;
+        }
         let fork = document.querySelector("#forkButton_"+msg.boardId);
         pgn_file_content[msg.boardId-1] = msg.pgn;
         games[msg.boardId-1].move(msg.move);
@@ -153,6 +158,11 @@ var onDrop = function (source, target) {
     // illegal move
     if (move === null) return 'snapback';
     else {
+        if(!started){
+            // game started, hide the abort button
+            started = true;
+            document.querySelector('#AbortBtn').hidden = true;
+        }
         if (!timeUpStatusArray[id - 1]) {
             pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
             updateStatus(id);
@@ -219,7 +229,6 @@ socket.on('player', (msg) => {
         };
         socket.emit('start', msg);
         state.innerHTML = "Game in Progress";
-        // document.querySelector(".msg").hidden = true;
         forkButton.disabled=false;
         forkButton.hidden=false;
         document.querySelector('.hidden').hidden=false;
@@ -234,6 +243,9 @@ socket.on('player', (msg) => {
         startOpponentTimer(1,{minutes: parseInt(param[1])});
         opponentTimers[0].pause();
         if (color === 'black') forkButton.disabled = true;
+
+
+        document.querySelector('#AbortBtn').hidden = false;
     }
     else {
         state.innerHTML = "Waiting for Second player";
@@ -274,6 +286,13 @@ socket.on('start', function (msg){
        startOpponentTimer(1,{minutes: parseInt(param[1])});
        opponentTimers[0].pause();
        if (color === 'black') forkButton.disabled = true;
+
+       document.querySelector('#AbortBtn').hidden = false;
+       setTimeout(function (){
+           if(!started){
+               abort();
+           }
+       }, 20000);
    }
 });
 
@@ -742,6 +761,21 @@ socket.on('file_created', function (msg) {
     document.querySelector('#DLButton').hidden = false;
 });
 
+socket.on('abort', function (msg){
+   if(roomId === msg.roomId){
+       alert('WHITE player did not make the first move in 20 seconds OR someone chose to abort this game.' +
+           '\n\nYou will be redirected to your home page.');
+       window.history.back();
+   }
+});
+
 function downloadGame(){
     location.href = "/download?" + $.param({file_name: pgn_file_name});
+}
+
+function abort(){
+    let msg = {
+        roomId: roomId
+    }
+    socket.emit('abort',msg);
 }

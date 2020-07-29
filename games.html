@@ -34,10 +34,6 @@
 <body>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <!-- <script src="./index.js"></script> -->
-  <!-- <script>
-    var socket = io();
-  </script> -->
   <div id="player"></div>
   <div id="state">Join Game</div>
   <div id="forkCount" hidden="true">
@@ -45,6 +41,7 @@
   </div>
   <label id="elo" hidden="true" style="font-weight: bold"></label><br>
   <button id="DLButton" class="btn btn-success" hidden="true" onclick="downloadGame()">DL Game</button>
+  <button id="AbortBtn" class="btn btn-success" hidden="true" onclick="abort()">ABORT</button>
   <div class="container">
     <div class="game" id="game_1">
         <div id="opponentTimer_1" style="text-align: center">
