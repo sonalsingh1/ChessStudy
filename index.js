@@ -259,7 +259,7 @@ app.get('/topRank', (request, response) => {
     let password = request.query.password;
     let columnName=request.query.columnName;
     let rankData=new Map();
-    let sql = 'select ELO_ID from elo_rating order by '+ columnName+' desc limit 0,10;';
+    let sql = 'select ELO_ID,'+columnName +' as col from elo_rating order by '+ columnName+' desc limit 0,10;';
         console.log(sql);
         con.query(sql,function (err, result) {
             if (err)  throw err;
@@ -267,21 +267,18 @@ app.get('/topRank', (request, response) => {
                 console.log("****Top Ranks***");
                 console.log(result);
 
-                for(let i=1;i<=result.length;++i){
-                    if(result[i]) {
-                        rankData.set('rank' + i, result[i].ELO_ID);
-                    }
+                for(let i=1;i<=10;++i){
+                    // if(result[i]) {
+                        if(i<=result.length){
+                            if(result[i-1]) {
+                                rankData.set('rank' + i, result[i-1].ELO_ID+' - '+result[i-1].col);
+                            }
+                        }else{
+                            rankData.set('rank' + i, "");
+                        }
+
+                    // }
                 }
-                    // rank1:,
-                    // rank2: result[1].ELO_ID,
-                    // rank3: result[2].ELO_ID,
-                    // rank4: result[3].ELO_ID,
-                    // rank5: result[4].ELO_ID,
-                    // rank6: result[5].ELO_ID,
-                    // rank7: result[6].ELO_ID,
-                    // rank8: result[7].ELO_ID,
-                    // rank9: result[8].ELO_ID,
-                    // rank10: result[9].ELO_ID,
                 console.log(rankData);
                 response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.get("rank1")}&rank2=${rankData.get("rank2")}&rank3=${rankData.get("rank3")}&rank4=${rankData.get("rank4")}&rank5=${rankData.get("rank5")}&rank6=${rankData.get("rank6")}&rank7=${rankData.get("rank7")}&rank8=${rankData.get("rank8")}&rank9=${rankData.get("rank9")}&rank10=${rankData.get("rank10")}`);
             }
