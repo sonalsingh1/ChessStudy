@@ -782,7 +782,6 @@ function cancelGame(){
     let username= param[5];
     let password= param[8];
     msg={
-        //qName: bullet_1_0_0_chess_aggregate
         qName : param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7]+"_"+param[4],
         username: username,
         password: password

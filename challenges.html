@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+	<link rel="stylesheet" type="text/css" href="./profile.css">
+	<title>Profile</title>
+	<style>
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		th, td {
+			padding: 8px;
+			text-align: left;
+			/*border-bottom: 1px solid #ddd;*/
+		}
+		button{
+
+		}
+	</style>
+</head>
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<div id="header">
+	<img class="logo" src="./img/logo.jpg" style="height: 100%; padding-left: 60px;margin-top: 5px">
+</div>
+<div id="center">
+    <div id="sidebar-l">
+    	<h1 id="user">User Name: FakeUser123</h1> <br>
+    	<button class="side-l" id="newGame" onclick="newGameOnClick()">New Game</button><br>
+		<button class="side-l" id="challenges" onclick="displayChallenges()">Challenges</button><br>
+		<button class="side-l" id="Rankings" onclick="displayTopRankings()">Top Rankings</button><br>
+		<button class="side-l" id="logOut" onclick="onLogOut()">Log Out</button><br>
+    </div>
+    <div id="main-wrapper">
+        <div id="main">
+        	<h1>Challenges Received:</h1>
+			<div id="noChallenge" hidden="true">No Challenges Found, Come Back Later</div>
+			<table id="challengeTable" hidden="true">
+				<tr>
+					<th>From</th>
+					<th>Rate Type</th>
+					<th>Game Spec</th>
+					<th> </th>
+					<th> </th>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>
+<div id="footer"></div>
+<script src="./challenges.js"></script>
+</body>
+</html>

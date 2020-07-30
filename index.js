@@ -35,6 +35,8 @@ const io = socket(server);
 var players;
 var joined = true;
 
+var activeChallenges = [];
+
 app.use(express.static(__dirname + "/"));
 // console.log(__dirname + "/");
 
@@ -246,8 +248,51 @@ app.get('/profile', function(request, response) {
             });
     }
 });
-app.get('/challenges', function(request, response){
+
+// handle user sending challenge
+app.get('/challenge', function(request, response){
+    let challenge_user = request.query.challenge_user;
+    let username = request.query.username;
+    let psw = request.query.password;
+    activeChallenges.push(request.query);
+    console.log(activeChallenges);
+    response.redirect(`/homepage?username=${username}&password=${psw}&disable=true`);
+});
+
+app.get('/getChallenges', function (request,response){
+    response.sendFile(__dirname + '/challenges.html');
+});
+
+app.get('/challenges', function (request,response){
     // response.sendFile(__dirname + '/challenges.html');
+    console.log(activeChallenges);
+    let url = `/getChallenges?username=${request.query.username}&password=${request.query.password}`;
+    let c = 0;
+    for (let i = 0; i < activeChallenges.length; i++) {
+        let opponent_user = activeChallenges[i].challenge_user;
+        if(opponent_user === request.query.username){
+            url+=`&from_${c}=${activeChallenges[i].username}`;
+            url+=`&rateType_${c}=${activeChallenges[i].rate_type}`;
+            url+=`&gameSpec_${c}=${activeChallenges[i].gameSpec}`;
+            c++;
+        }
+    }
+    if (c>0) {
+        url+= `&num=${c}`;
+    }
+    response.redirect(url);
+});
+
+app.get('/removeChallenge', function (request, response){
+   let username = request.query.username;
+   let psw = request.query.password;
+    for (let i = 0; i < activeChallenges.length; i++) {
+        if(username === activeChallenges[i].username){
+            activeChallenges.splice(i,1);
+        }
+    }
+    console.log(activeChallenges);
+    response.redirect(`/homepage?username=${username}&password=${psw}&show=true`);
 });
 
 app.get('/topRankings', function(request, response){
@@ -287,11 +332,6 @@ app.get('/topRank', (request, response) => {
 
 app.get('/download', function (request, response){
     response.sendFile(__dirname + `/cfn/${request.query.file_name}`);
-});
-
-// handle user sending challenges
-app.get('/challenge', function (request, response){
-
 });
 
 io.on('connection', function (socket) {
