@@ -1,5 +1,6 @@
+const urlParams = new URLSearchParams(window.location.search);
 // the order of elements in this array is: gameType, startTime, timeIncrement, forkAvailable, rateType, userName, Chess game type
-var param = Array(9);
+var param = Array(10);
 //This variable contains the total number of boards where the game is over
 var gameOverBoardCount=0;
 var self_elo, opponent_elo;
@@ -8,7 +9,8 @@ var oppo_content;
 var pgn_file_name;
 var old_elo, new_elo;
 var started = false;
-
+var challenge = urlParams.get('challenge');
+var secondPlayer = urlParams.get('second')
 getPara();
 console.log(param);
 // function that get parameters from the URL
@@ -65,7 +67,28 @@ var connect = function(){
         qName: qName,
         username: param[5]
     };
-    socket.emit('joined', data);
+    if (!challenge) {
+        socket.emit('joined', data);
+    } else{
+        if (secondPlayer){
+            roomId = urlParams.get('roomId');
+            data = {
+                qName: qName,
+                username: param[5],
+                roomId: roomId,
+                from: secondPlayer
+            }
+            socket.emit('second_challenge',data);
+        } else {
+            roomId = urlParams.get('roomId');
+            data = {
+                qName: qName,
+                username: param[5],
+                roomId: roomId
+            }
+            socket.emit('challenge', data);
+        }
+    }
 };
 
 // manually call the connect function
@@ -317,7 +340,7 @@ function updateStatus (id) {
     var moveColor = 'White';
     if (games[id - 1].turn() === 'b') {
         moveColor = 'Black'
-    };
+    }
 
     if(isGameOver){
         console.log("Game Over!");
@@ -779,14 +802,18 @@ function downloadGame(){
 }
 
 function cancelGame(){
-    let username= param[5];
-    let password= param[8];
-    msg={
-        qName : param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7]+"_"+param[4],
-        username: username,
-        password: password
-    };
-    location.href = "/cancel?" + $.param(msg);
+        let username = param[5];
+        let password = param[8];
+        let msg = {
+            qName: param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3] + "_" + param[7] + "_" + param[4],
+            username: username,
+            password: password
+        };
+    if (!challenge) {
+        location.href = "/cancel?" + $.param(msg);
+    } else {
+        location.href = "/removeChallenge?" + $.param(msg);
+    }
 }
 function abort(){
     let msg = {

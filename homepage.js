@@ -118,15 +118,22 @@ function startChallenge(){
         btn = btn[1].split("*");
         let timeIncrement = btn[0];
         let forkAvailable = btn[1];
-        let para = {
-            username: username,
-            challenge_user: opponentUserName,
+        let temp = $('input[name="style_time"]:checked').val().split('_');
+        let elo_col = temp[0] + '_'+ $('input[name="game_type"]:checked').val() + 'F'+ temp[1].slice(-1);
+
+        let data = {
+            to: opponentUserName,
             gameType: gameType,
+            startTime: startTime,
+            timeIncrement: timeIncrement,
+            forkAvailable: forkAvailable,
             rate_type: rate_type,
-            gameSpec: `${startTime}_${timeIncrement}*${forkAvailable}`,
-            password: password
-        }
-        location.href = "/challenge?" + $.param(para);
+            username: username,
+            password: password,
+            elo_col: elo_col,
+            chessOrChess960:chessOrChess960
+        };
+        location.href = "/challenge?" + $.param(data);
     }
 }
 function removeChallenge(){

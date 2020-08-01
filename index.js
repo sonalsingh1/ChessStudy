@@ -251,12 +251,33 @@ app.get('/profile', function(request, response) {
 
 // handle user sending challenge
 app.get('/challenge', function(request, response){
-    let challenge_user = request.query.challenge_user;
+    let challenge_user = request.query.to;
+    let gameType = request.query.gameType;
+    let startTime = request.query.startTime;
+    let timeIncrement = request.query.timeIncrement;
+    let forkAvailable = request.query.forkAvailable;
+    let rate_type = request.query.rate_type;
+    let elo_col = request.query.elo_col;
+    let chessOrChess960= request.query.chessOrChess960;
+    let password= request.query.password;
     let username = request.query.username;
-    let psw = request.query.password;
-    activeChallenges.push(request.query);
-    console.log(activeChallenges);
-    response.redirect(`/homepage?username=${username}&password=${psw}&disable=true`);
+    let roomId = getID();
+
+    let challengeObj = {
+        from: username,
+        to: challenge_user,
+        gameType: gameType,
+        startTime: startTime,
+        timeIncrement: timeIncrement,
+        forkAvailable: forkAvailable,
+        rateType: rate_type,
+        elo_col:elo_col,
+        chessOrChess960: chessOrChess960,
+        password: password,
+        roomId: roomId
+    }
+    activeChallenges.push(challengeObj);
+    response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_type=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}&password=${password}&challenge=true&roomId=${roomId}`);
 });
 
 app.get('/getChallenges', function (request,response){
@@ -267,13 +288,17 @@ app.get('/challenges', function (request,response){
     // response.sendFile(__dirname + '/challenges.html');
     console.log(activeChallenges);
     let url = `/getChallenges?username=${request.query.username}&password=${request.query.password}`;
+    if (request.query.cancel){
+        url+=`&cancel=true`;
+    }
     let c = 0;
     for (let i = 0; i < activeChallenges.length; i++) {
-        let opponent_user = activeChallenges[i].challenge_user;
+        let opponent_user = activeChallenges[i].to;
         if(opponent_user === request.query.username){
-            url+=`&from_${c}=${activeChallenges[i].username}`;
-            url+=`&rateType_${c}=${activeChallenges[i].rate_type}`;
-            url+=`&gameSpec_${c}=${activeChallenges[i].gameSpec}`;
+            url+=`&from_${c}=${activeChallenges[i].from}`;
+            url+=`&gameType_${c}=${activeChallenges[i].chessOrChess960}`
+            url+=`&rateType_${c}=${activeChallenges[i].rateType}`;
+            url+=`&gameSpec_${c}=${activeChallenges[i].gameType}:${activeChallenges[i].startTime}_${activeChallenges[i].timeIncrement}*${activeChallenges[i].forkAvailable}`;
             c++;
         }
     }
@@ -283,11 +308,51 @@ app.get('/challenges', function (request,response){
     response.redirect(url);
 });
 
+app.get('/acceptChallenge', function (request, response){
+    let from = request.query.from;
+    let to = request.query.to;
+    let challengeId = undefined;
+    for (let i = 0; i <activeChallenges.length ; i++) {
+       if (activeChallenges[i].from === from && activeChallenges[i].to === to){
+           challengeId = i;
+           break;
+       }
+    }
+    if (challengeId !== undefined){
+        let gameType = activeChallenges[challengeId].gameType;
+        let startTime = activeChallenges[challengeId].startTime;
+        let timeIncrement = activeChallenges[challengeId].timeIncrement;
+        let forkAvailable = activeChallenges[challengeId].forkAvailable;
+        let rate_type = activeChallenges[challengeId].rateType;
+        let username = to;
+        let elo_col = activeChallenges[challengeId].elo_col;
+        let chessOrChess960 = activeChallenges[challengeId].chessOrChess960;
+        let password = request.query.password;
+        let roomId = activeChallenges[challengeId].roomId;
+        response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_type=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}&password=${password}&challenge=true&second=${from}&roomId=${roomId}`);
+    } else {
+        response.redirect(`/challenges?username=${to}&password=${request.query.password}&cancel=true`)
+    }
+
+});
+
+app.get('/declineChallenge', function (request, response){
+    let from = request.query.from;
+    let to = request.query.to;
+    for (let i = 0; i < activeChallenges.length; i++) {
+        if(from === activeChallenges[i].from && to === activeChallenges[i].to){
+            activeChallenges.splice(i,1);
+            break;
+        }
+    }
+    response.redirect(`/challenges?username=${to}&password=${request.query.password}`);
+});
+
 app.get('/removeChallenge', function (request, response){
    let username = request.query.username;
    let psw = request.query.password;
     for (let i = 0; i < activeChallenges.length; i++) {
-        if(username === activeChallenges[i].username){
+        if(username === activeChallenges[i].from){
             activeChallenges.splice(i,1);
         }
     }
@@ -347,6 +412,25 @@ io.on('connection', function (socket) {
         match(playerId, qName);
 
     });
+
+    socket.on('challenge', function (data){
+        playerId = data.username;
+        let roomId = data.roomId;
+        socket.emit('player', {playerId, players: 1, color: 'white', roomId});
+    });
+
+    socket.on('second_challenge',function (data){
+        playerId = data.username;
+        let roomId = data.roomId;
+        socket.emit('player', {playerId, players:2, color: 'black', roomId});
+        let from = data.from;
+        for (let i = 0; i < activeChallenges.length; i++) {
+            if(from === activeChallenges[i].from && playerId === activeChallenges[i].to){
+                activeChallenges.splice(i,1);
+                break;
+            }
+        }
+    })
 
     socket.on('move', function (msg) {
         socket.broadcast.emit('move', msg);
@@ -645,19 +729,7 @@ io.on('connection', function (socket) {
 
                   }
             });
-        // });
     }
-
-    function getID(){
-        for (let i = 0; i < isRoomFull.length ; i++) {
-            if (!isRoomFull[i]) {
-                isRoomFull[i] = true;
-                return i;
-            }
-        }
-    }
-
-
 });
 
 
@@ -669,6 +741,15 @@ function create_UUID(){
         return (c=='x' ? r :(r&0x3|0x8)).toString(16);
     });
     return uuid;
+}
+
+function getID(){
+    for (let i = 0; i < isRoomFull.length ; i++) {
+        if (!isRoomFull[i]) {
+            isRoomFull[i] = true;
+            return i;
+        }
+    }
 }
 
 server.listen(port);
