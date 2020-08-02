@@ -692,7 +692,7 @@ io.on('connection', function (socket) {
                       //Store all the queue members whose difference is less than threshold in a map
                       for(let i=0;i<queueElementsArray.length;++i){
                           let diff = Math.abs(queueElementsArray[i].eloRating - eloRating);
-                          if (diff < 100) {
+                          if (diff < 100 && queueElementsArray[i].playerId !== username) {
                               console.log("player ID is="+queueElementsArray[i].playerId);
                               queueMembersMap.set(queueElementsArray[i].playerId, diff);
                           }
