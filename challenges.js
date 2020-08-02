@@ -18,10 +18,12 @@ if(totalNum){
         let gameType = urlParams.get(`gameType_${i}`);
         let rateType = urlParams.get(`rateType_${i}`);
         let gameSpec = urlParams.get(`gameSpec_${i}`);
+        let elo = urlParams.get(`elo_${i}`);
         gameSpec = gameSpec.replace(/_/,'+');
 
         let row = document.createElement('tr');
         row.innerHTML += `<td>${from}</td>`;
+        row.innerHTML += `<td>${elo}</td>`
         row.innerHTML += `<td>${gameType}</td>`;
         row.innerHTML += `<td>${rateType}</td>`;
         row.innerHTML += `<td>${gameSpec}</td>`;

@@ -263,21 +263,31 @@ app.get('/challenge', function(request, response){
     let username = request.query.username;
     let roomId = getID();
 
-    let challengeObj = {
-        from: username,
-        to: challenge_user,
-        gameType: gameType,
-        startTime: startTime,
-        timeIncrement: timeIncrement,
-        forkAvailable: forkAvailable,
-        rateType: rate_type,
-        elo_col:elo_col,
-        chessOrChess960: chessOrChess960,
-        password: password,
-        roomId: roomId
+    let sql = `SELECT ${elo_col} AS col FROM chessstudy.elo_rating WHERE ELO_ID = '${username}'`;
+    try {
+        con.query(sql, function (err, result) {
+            let elo = result[0].col;
+            let challengeObj = {
+                from: username,
+                to: challenge_user,
+                elo: elo,
+                gameType: gameType,
+                startTime: startTime,
+                timeIncrement: timeIncrement,
+                forkAvailable: forkAvailable,
+                rateType: rate_type,
+                elo_col: elo_col,
+                chessOrChess960: chessOrChess960,
+                password: password,
+                roomId: roomId
+            }
+            activeChallenges.push(challengeObj);
+            response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_type=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}&password=${password}&challenge=true&roomId=${roomId}`);
+
+        });
+    }catch (e){
+        console.log(e);
     }
-    activeChallenges.push(challengeObj);
-    response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_type=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}&password=${password}&challenge=true&roomId=${roomId}`);
 });
 
 app.get('/getChallenges', function (request,response){
@@ -296,6 +306,7 @@ app.get('/challenges', function (request,response){
         let opponent_user = activeChallenges[i].to;
         if(opponent_user === request.query.username){
             url+=`&from_${c}=${activeChallenges[i].from}`;
+            url+=`&elo_${c}=${activeChallenges[i].elo}`;
             url+=`&gameType_${c}=${activeChallenges[i].chessOrChess960}`
             url+=`&rateType_${c}=${activeChallenges[i].rateType}`;
             url+=`&gameSpec_${c}=${activeChallenges[i].gameType}:${activeChallenges[i].startTime}_${activeChallenges[i].timeIncrement}*${activeChallenges[i].forkAvailable}`;
