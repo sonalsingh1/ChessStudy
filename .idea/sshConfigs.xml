@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig host="ilab1.heinz.cmu.edu" id="972232bf-ec9c-4288-98bf-f47b047f3935" keyPath="C:\Users\xjcpd\.ssh\id_rsa" port="22" customName="HeinzServer" nameFormat="CUSTOM" username="jiechenx">
+        <option name="customName" value="HeinzServer" />
+      </sshConfig>
+    </configs>
+  </component>
+</project>
