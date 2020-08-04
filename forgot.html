@@ -30,7 +30,15 @@
 			padding-left: 150px;
 			padding-right: 150px;
 		}
+		table{
+			margin: auto;
+		}
+		th, td {
+			padding: 8px;
+			text-align: center;
+		}
 	</style>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
 <img class="logo" src="./img/logo.jpg" style="width: 150px; height: 200px">
@@ -41,12 +49,18 @@
 <!-- 	<label class="lb">Password:</label>
 	<input class="in" type="text" placeholder="Password" name="password"> -->
 	<br>
-	<button style="margin: 10px; width: 100px">Retrieve</button>
+	<button style="margin: 10px; width: 100px" onclick="getInfo()">Retrieve</button>
 	<button style="margin: 10px; width: 100px" onclick="location.href='./login.html'">Cancle</button>
 	<br>
 	<br>
 	<br>
-	<label class="console">This is a place to display console message.</label>
+	<label class="console"></label>
+	<table id="resultTable" hidden="true">
+		<tr>
+			<th>Username</th>
+			<th>Password</th>
+		</tr>
+	</table>
 	<br><br><br><br>
 	<div class="description">
 		It’s your turn to move. You considering several candidate moves. You aren’t sure which one is better. They may even all seem great. Why don’t you play all of them?
@@ -62,5 +76,37 @@
 		What if you don’t care with your ELO rating? Just have fun and play unrated games! Come join us and play Chess-fork! This is a beta version of this website (for example, the Chess960-fork is not yet available). Bear with us and send us comments and suggestions for improvement at fork.chess@gmail.com.
 		<br><br>
 	</div>
+<script>
+	function getInfo(){
+		let email = document.querySelector('.in').value;
+		location.href = `/forget?email=${email}`;
+	}
+	const urlParam = new URLSearchParams(window.location.search);
+	var error = urlParam.get('error');
+	var found = urlParam.get('found');
+	var num = urlParam.get('num');
+	if(error){
+		$('.console').text('Something went wrong, please try again!');
+		$('.console').css('color','red');
+	} else if (found){
+		$('.console').text('No email address found!');
+		$('.console').css('color','red');
+	}
+	if(num){
+		let str = `The email address matches the following account:`;
+		$('.console').text(`${str}`);
+		document.querySelector('#resultTable').hidden = false;
+		let table = document.querySelector('#resultTable').getElementsByTagName('tbody')[0];
+		for (let i = 0; i < parseInt(num) ; i++) {
+			let username = urlParam.get(`username_${i}`);
+			let password = urlParam.get(`password_${i}`);
+			let row = document.createElement('tr');
+			row.innerHTML += `<td>${username}</td>`;
+			row.innerHTML += `<td>${password}</td>`
+			table.appendChild(row);
+		}
+	}
+
+</script>
 </body>
 </html>

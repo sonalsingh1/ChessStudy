@@ -249,6 +249,37 @@ app.get('/profile', function(request, response) {
     }
 });
 
+app.get('/forgetPage', function(request, response){
+    response.sendFile(__dirname + '/forgot.html');
+});
+
+app.get('/forget',function (request, response){
+    let email = request.query.email;
+    let sql = `SELECT username, password FROM chessstudy.player WHERE Email = '${email}'`;
+    try{
+        con.query(sql, function (err, result){
+            if (err) throw err;
+            if (result.length === 0){ // no user found
+                response.redirect('/forgetPage?found=false');
+            } else{
+                let url = '/forgetPage?';
+                let c = 0
+                for (let i = 0; i <result.length ; i++) {
+                    let username = result[i].username;
+                    let psd = result[i].password;
+                    url += `&username_${i}=${username}&password_${i}=${psd}`;
+                    c++;
+                }
+                url += `&num=${c}`;
+                response.redirect(url);
+            }
+        })
+    } catch (e) {
+        console.log(e);
+        response.redirect('/forgetPage?error=true');
+    }
+});
+
 // handle user sending challenge
 app.get('/challenge', function(request, response){
     let challenge_user = request.query.to;
