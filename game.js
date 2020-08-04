@@ -787,6 +787,7 @@ socket.on('opponent_independent_score', function(msg){
 socket.on('file_created', function (msg) {
     pgn_file_name = msg.pgn_file_name;
     document.querySelector('#DLButton').hidden = false;
+    document.querySelector('#mainMenu').hidden = false;
 });
 
 socket.on('abort', function (msg){
@@ -820,4 +821,10 @@ function abort(){
         roomId: roomId
     }
     socket.emit('abort',msg);
+}
+
+function mainMenu(){
+    let username = param[5];
+    let password = param[8];
+    location.href = `/homepage?username=${username}&password=${password}`;
 }
