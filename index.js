@@ -85,6 +85,7 @@ app.get('/cancel', (req, res) => {
     res.redirect(`/homepage?username=${playerID}&password=${password}`);
 });
 
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/login.html');
 });
@@ -496,9 +497,30 @@ io.on('connection', function (socket) {
                 }
             }
         }
+        //Get each element in the queue
+        for (const [key, value] of queues.entries()) {
+            console.log(queues.get(key));
+            let queueElementsArray = queues.get(key);
+            console.log("queue on cancel click:"+ queueElementsArray);
+            let index=undefined;
+            for(let i=0;i<queueElementsArray.length;++i){
+                if(playerId===queueElementsArray[i].playerId){
+                    index=i;
+                    break;
+                }
+            }
+            console.log("cancel index="+index);
+            if(index!=undefined){
+                queues.get(key).splice(index,1);
+                console.log("Queue after removal of entry at index="+ index);
+                // isRoomFull[req.query.roomId]=false;   //Mark the room as not full
+            }
+        }
         console.log(playerId + ' disconnected');
-        console.log(queues)
+        console.log(queues);
     });
+
+
 
     socket.on('file_content', function (msg) {
         socket.broadcast.emit('opponent_file_content', msg);

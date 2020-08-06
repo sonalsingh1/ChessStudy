@@ -745,6 +745,7 @@ socket.on('opponent_file_content', function (msg) {
     }
 });
 
+
 function waitForElo(){
     if(old_elo && new_elo){
         //variable exists, do what you want
@@ -797,6 +798,20 @@ socket.on('abort', function (msg){
        window.history.back();
    }
 });
+
+// window.addEventListener('beforeunload', function (e) {
+//     e.preventDefault();
+//     e.returnValue = '';
+//     let username= param[5];
+//     let password= param[8];
+//     msg={
+//         qName : param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7]+"_"+param[4],
+//         username: username,
+//         password: password
+//     };
+//     location.href = "/disconnected?" + $.param(msg);
+//
+// });
 
 function downloadGame(){
     location.href = "/download?" + $.param({file_name: pgn_file_name});

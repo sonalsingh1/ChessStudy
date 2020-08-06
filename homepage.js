@@ -44,6 +44,7 @@ if(show){
         inputs[i].disabled = false;
     }
 }
+
 function startPlay() {
     let btn = $('input[name="style_time"]:checked').val().split("_");
     let chessOrChess960=$('input[name="game_type"]:checked').val();
