@@ -51,7 +51,7 @@ app.use(express.static(__dirname + "/"));
 
 var games = Array(100);
 for (let i = 0; i < 100; i++) {
-    games[i] = {players: 0 , pid: [0 , 0]};
+    games[i] = {players: 0 , pid: [0 , 0], p1_color: undefined, p2_color: undefined};
 }
 
 // array indicate if the room is full
@@ -728,7 +728,6 @@ io.on('connection', function (socket) {
     });
 
     function match(playerId, qName) {
-        let roomId = getID();
         let qnameArray = qName.split("_");
         let column_name = qnameArray[0] + "_" + qnameArray[4] + "F" + qnameArray[3];//eg; Bullet_ChessF0
         // let qName= qnameArray[0] + "_" +qnameArray[1] + "_" +qnameArray[2] + "_" +qnameArray[3] + "_" +qnameArray[4];
@@ -748,8 +747,19 @@ io.on('connection', function (socket) {
                   // Remove the player from the queue in case the player disconnects
 
                   if (queues.get(qName).length === 0) {
+                      let roomId = getID();
                       queues.get(qName).push({playerId, roomId, eloRating}); // PlayerId is going to be replaced by the player ID extracted from DB
-                      socket.emit('player', {playerId, players: 1, color: 'white', roomId});
+
+                      //random color
+                      let color = Math.random();
+                      if (color >= 0.5) color = 'white';
+                      else color = 'black';
+
+                      socket.emit('player', {playerId, players: 1, color: color, roomId});
+                      games[roomId].players++;
+                      games[roomId].pid[0] = playerId;
+                      games[roomId].p1_color = color;
+
                       console.log("first player send " + roomId);
 
                       for (const [key, value] of queues.entries()) {
@@ -801,16 +811,31 @@ io.on('connection', function (socket) {
                               console.log(queues.get(key));
                           }
                           // let previousRoomId = queues.get(qName).pop().roomId; // pop the player on top
-                          socket.emit('player', {playerId, players: 2, color: 'black', roomId: previousRoomId});
+                          let color;
+                          if(games[previousRoomId].p1_color === 'white') color = 'black';
+                          else color = 'white';
+                          socket.emit('player', {playerId, players: 2, color: color, roomId: previousRoomId});
+                          games[previousRoomId].players++;
+                          games[previousRoomId].pid[1] = playerId;
+                          games[previousRoomId].p2_color = color;
                           console.log('sending to room:' + previousRoomId);
                       } else {
                           //Add current player to the queue
+                          let roomId = getID();
                           queues.get(qName).push({playerId, roomId, eloRating}); // PlayerId is going to be replaced by the player ID extracted from DB
                           console.log("Queue after queueMemberMap is empty");
                           for (const [key, value] of queues.entries()) {
                               console.log(queues.get(key));
                           }
-                          socket.emit('player', {playerId, players: 1, color: 'white', roomId});
+
+                          //random color
+                          let color = Math.random();
+                          if (color >= 0.5) color = 'white';
+                          else color = 'black';
+                          socket.emit('player', {playerId, players: 1, color: color, roomId});
+                          games[roomId].players++;
+                          games[roomId].pid[0] = playerId;
+                          games[roomId].p1_color = color;
                       }
 
                   }
