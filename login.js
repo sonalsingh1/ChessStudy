@@ -3,11 +3,17 @@
 var signIn = function(){
     var username= document.getElementById("userID").value;
     var password= document.getElementById("password").value;
-    let data = {
-      userName : username,
-      passWord : password
-    };
-    location.href = "/login?" + $.param(data);
+    if (username && password){
+        let data = {
+            userName: username,
+            passWord: password
+        };
+        location.href = "/login?" + $.param(data);
+    } else {
+        // console.log(123);
+        $('#msg').text('Username / Password cannot be empty, please try again!');
+        $('#msg').css('color','red');
+    }
 };
 
 
