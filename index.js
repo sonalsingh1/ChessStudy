@@ -14,6 +14,15 @@ const con = mysql.createConnection({
     database: "chessstudy"
 });
 
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'xjcpdp1995@gmail.com',
+        pass: 'abc13916705665'
+    }
+});
+
 /**
  the following configuration is for Heinz Server, DO NOT CHANGE.
 
@@ -263,16 +272,27 @@ app.get('/forget',function (request, response){
             if (result.length === 0){ // no user found
                 response.redirect('/forgetPage?found=false');
             } else{
-                let url = '/forgetPage?';
-                let c = 0
-                for (let i = 0; i <result.length ; i++) {
+                let str = 'The Following Account Has Been Retrieved:'+'\n'+'Username' + '\t\t' + 'Password'
+                for (let i = 0; i < result.length; i++) {
                     let username = result[i].username;
                     let psd = result[i].password;
-                    url += `&username_${i}=${username}&password_${i}=${psd}`;
-                    c++;
+                    str += '\n' + `${username.padEnd('Username'.length)}`+'\t\t'+`${psd.padEnd('Password'.length)}`;
                 }
-                url += `&num=${c}`;
-                response.redirect(url);
+                let mailOptions = {
+                    from: 'xjcpdp1995@gmail.com',
+                    to: `${email}`,
+                    subject: 'Your Account Info',
+                    text: str
+                };
+                transporter.sendMail(mailOptions, function (error, info){
+                   if (error){
+                       console.log(error);
+                       response.redirect('/forgetPage?error=true');
+                   } else{
+                       console.log(`Email sent to: ${email}`);
+                       response.redirect('/forgetPage?success=true');
+                   }
+                });
             }
         })
     } catch (e) {

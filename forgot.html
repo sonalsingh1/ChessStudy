@@ -85,6 +85,7 @@
 	var error = urlParam.get('error');
 	var found = urlParam.get('found');
 	var num = urlParam.get('num');
+	var success = urlParam.get('success');
 	if(error){
 		$('.console').text('Something went wrong, please try again!');
 		$('.console').css('color','red');
@@ -92,19 +93,8 @@
 		$('.console').text('No email address found!');
 		$('.console').css('color','red');
 	}
-	if(num){
-		let str = `The email address matches the following account:`;
-		$('.console').text(`${str}`);
-		document.querySelector('#resultTable').hidden = false;
-		let table = document.querySelector('#resultTable').getElementsByTagName('tbody')[0];
-		for (let i = 0; i < parseInt(num) ; i++) {
-			let username = urlParam.get(`username_${i}`);
-			let password = urlParam.get(`password_${i}`);
-			let row = document.createElement('tr');
-			row.innerHTML += `<td>${username}</td>`;
-			row.innerHTML += `<td>${password}</td>`
-			table.appendChild(row);
-		}
+	if (success){
+		alert('An email has been sent to your email account!');
 	}
 
 </script>
