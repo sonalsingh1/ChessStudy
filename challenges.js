@@ -27,8 +27,8 @@ if(totalNum){
         row.innerHTML += `<td>${gameType}</td>`;
         row.innerHTML += `<td>${rateType}</td>`;
         row.innerHTML += `<td>${gameSpec}</td>`;
-        row.innerHTML += `<button class="btn btn-success" onclick="acceptChallenge(this.parentNode)">ACCEPT</button>&nbsp`;
-        row.innerHTML += `<button class="btn btn-default" onclick="declineChallenge(this.parentNode)">DECLINE</button>`
+        row.innerHTML += `<button class="btn btn-success" onclick="acceptChallenge(this.parentNode)">Accept</button>&nbsp`;
+        row.innerHTML += `<button class="btn btn-default" onclick="declineChallenge(this.parentNode)">Decline</button>`
         table.appendChild(row);
     }
 } else{

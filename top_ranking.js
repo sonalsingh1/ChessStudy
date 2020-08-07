@@ -12,7 +12,16 @@ $('#rank7').text(urlParams.get('rank7'));
 $('#rank8').text(urlParams.get('rank8'));
 $('#rank9').text(urlParams.get('rank9'));
 $('#rank10').text(urlParams.get('rank10'));
-
+$('#rank1ELO').text(urlParams.get('rank1ELO'));
+$('#rank2ELO').text(urlParams.get('rank2ELO'));
+$('#rank3ELO').text(urlParams.get('rank3ELO'));
+$('#rank4ELO').text(urlParams.get('rank4ELO'));
+$('#rank5ELO').text(urlParams.get('rank5ELO'));
+$('#rank6ELO').text(urlParams.get('rank6ELO'));
+$('#rank7ELO').text(urlParams.get('rank7ELO'));
+$('#rank8ELO').text(urlParams.get('rank8ELO'));
+$('#rank9ELO').text(urlParams.get('rank9ELO'));
+$('#rank10ELO').text(urlParams.get('rank10ELO'));
 
 if(username) {
     $('#user').text(`User Name: ${username}`);

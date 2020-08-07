@@ -424,16 +424,18 @@ app.get('/topRank', (request, response) => {
                     // if(result[i]) {
                         if(i<=result.length){
                             if(result[i-1]) {
-                                rankData.set('rank' + i, result[i-1].ELO_ID+' - '+result[i-1].col);
+                                rankData.set('rank' + i,result[i-1].ELO_ID);
+                                rankData.set('rank'+ i+'ELO',result[i-1].col )
                             }
                         }else{
                             rankData.set('rank' + i, "");
+                            rankData.set('rank'+ i+'ELO',"")
                         }
 
                     // }
                 }
                 console.log(rankData);
-                response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.get("rank1")}&rank2=${rankData.get("rank2")}&rank3=${rankData.get("rank3")}&rank4=${rankData.get("rank4")}&rank5=${rankData.get("rank5")}&rank6=${rankData.get("rank6")}&rank7=${rankData.get("rank7")}&rank8=${rankData.get("rank8")}&rank9=${rankData.get("rank9")}&rank10=${rankData.get("rank10")}`);
+                response.redirect(`/topRankings?username=${username}&password=${password}&rank1=${rankData.get("rank1")}&rank1ELO=${rankData.get("rank1ELO")}&rank2=${rankData.get("rank2")}&rank2ELO=${rankData.get("rank2ELO")}&rank3=${rankData.get("rank3")}&rank3ELO=${rankData.get("rank3ELO")}&rank4=${rankData.get("rank4")}&rank4ELO=${rankData.get("rank4ELO")}&rank5=${rankData.get("rank5")}&rank5ELO=${rankData.get("rank5ELO")}&rank6=${rankData.get("rank6")}&rank6ELO=${rankData.get("rank6ELO")}&rank7=${rankData.get("rank7")}&rank7ELO=${rankData.get("rank7ELO")}&rank8=${rankData.get("rank8")}&rank8ELO=${rankData.get("rank8ELO")}&rank9=${rankData.get("rank9")}&rank9ELO=${rankData.get("rank9ELO")}&rank10=${rankData.get("rank10")}&rank10ELO=${rankData.get("rank10ELO")}`);
             }
         })
 });
@@ -497,7 +499,7 @@ io.on('connection', function (socket) {
                 }
             }
         }
-        //Get each element in the queue
+        //Get each element in the queue and remove the entry for the player
         for (const [key, value] of queues.entries()) {
             console.log(queues.get(key));
             let queueElementsArray = queues.get(key);
