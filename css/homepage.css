@@ -4,10 +4,9 @@
 			float:left; width:200px; margin-top:10px; height:500px;
 			margin-left: 10px; text-align: center;
 		}
-		#main-wrapper {margin-top:10px; float:left; width:100%; margin-left:-420px; height:500px;}
-		#main {margin-left:438px; height:500px;}
+		#main-wrapper {margin-top:10px; float:left; width:100%; margin-left:-420px; height:100%;}
+		#main {margin-left:438px; height:100%;}
 		#sidebar-r {float:right; width:200px; margin-top:10px; height:500px;text-align: center;}
-		#footer{height:50px; margin-top:10px;}
 		h1{
 			font-size: 16px;
 			font-weight: bold;
