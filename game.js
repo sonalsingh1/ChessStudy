@@ -105,6 +105,8 @@ socket.on('move', function (msg) {
             started = true;
             document.querySelector('#AbortBtn').hidden = true;
             document.querySelector('#AbortLab').hidden = true;
+            $('#resignButton_1').prop('disabled',false);
+            $('#drawButton_1').prop('disabled',false);
         }
         let fork = document.querySelector("#forkButton_"+msg.boardId);
         pgn_file_content[msg.boardId-1] = msg.pgn;
@@ -187,6 +189,8 @@ var onDrop = function (source, target) {
             started = true;
             document.querySelector('#AbortBtn').hidden = true;
             document.querySelector('#AbortLab').hidden = true;
+            $('#resignButton_1').prop('disabled',false);
+            $('#drawButton_1').prop('disabled',false);
         }
         if (!timeUpStatusArray[id - 1]) {
             pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
@@ -270,7 +274,8 @@ socket.on('player', (msg) => {
         startOpponentTimer(1,{minutes: parseInt(param[1])});
         opponentTimers[0].pause();
         if (color === 'black') forkButton.disabled = true;
-
+        $('#resignButton_1').prop('disabled',true);
+        $('#drawButton_1').prop('disabled',true);
 
         document.querySelector('#AbortBtn').hidden = false;
         document.querySelector('#AbortLab').hidden = false;
@@ -323,6 +328,8 @@ socket.on('start', function (msg){
                abort();
            }
        }, 20000);
+       $('#resignButton_1').prop('disabled',true);
+       $('#drawButton_1').prop('disabled',true);
    }
 });
 
@@ -378,6 +385,19 @@ function updateStatus (id) {
 }
 
 function fork(id){
+    if(!started){
+        // game started, hide the abort button
+        started = true;
+        document.querySelector('#AbortBtn').hidden = true;
+        document.querySelector('#AbortLab').hidden = true;
+        $('#resignButton_1').prop('disabled',false);
+        $('#drawButton_1').prop('disabled',false);
+        if (color === 'white') {
+            timers[id - 1].start();
+        } else{
+            opponentTimers[id - 1].start();
+        }
+    }
     // var fen = $('#fen_'+id)[0].innerText;
     let fen = games[id-1].fen();
     totalGame++;
