@@ -313,33 +313,47 @@ app.get('/challenge', function(request, response){
     let chessOrChess960= request.query.chessOrChess960;
     let password= request.query.password;
     let username = request.query.username;
-    let roomId = getID();
 
-    let sql = `SELECT ${elo_col} AS col FROM chessstudy.elo_rating WHERE ELO_ID = '${username}'`;
-    try {
-        con.query(sql, function (err, result) {
-            let elo = result[0].col;
-            let challengeObj = {
-                from: username,
-                to: challenge_user,
-                elo: elo,
-                gameType: gameType,
-                startTime: startTime,
-                timeIncrement: timeIncrement,
-                forkAvailable: forkAvailable,
-                rateType: rate_type,
-                elo_col: elo_col,
-                chessOrChess960: chessOrChess960,
-                password: password,
-                roomId: roomId
+    //FIRST check if opponent user (to) exists
+    let sql = `SELECT username FROM chessstudy.player WHERE username = '${challenge_user}'`;
+    try{
+        con.query(sql, function (err, result){
+            if(err) throw err;
+            if (result.length === 0){ // no such user
+                response.redirect(`/homepage?username=${username}&password=${password}&found=false`);
+            } else{
+                sql = `SELECT ${elo_col} AS col FROM chessstudy.elo_rating WHERE ELO_ID = '${username}'`;
+                try {
+                    let roomId = getID();
+                    con.query(sql, function (err, result) {
+                        let elo = result[0].col;
+                        let challengeObj = {
+                            from: username,
+                            to: challenge_user,
+                            elo: elo,
+                            gameType: gameType,
+                            startTime: startTime,
+                            timeIncrement: timeIncrement,
+                            forkAvailable: forkAvailable,
+                            rateType: rate_type,
+                            elo_col: elo_col,
+                            chessOrChess960: chessOrChess960,
+                            password: password,
+                            roomId: roomId
+                        }
+                        activeChallenges.push(challengeObj);
+                        response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_type=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}&password=${password}&challenge=true&roomId=${roomId}`);
+
+                    });
+                }catch (e){
+                    console.log(e);
+                }
             }
-            activeChallenges.push(challengeObj);
-            response.redirect(`/game?gameType=${gameType}&startTime=${startTime}&timeIncrement=${timeIncrement}&forkAvailable=${forkAvailable}&rate_type=${rate_type}&username=${username}&elo_col=${elo_col}&chessOrChess960=${chessOrChess960}&password=${password}&challenge=true&roomId=${roomId}`);
-
-        });
-    }catch (e){
+        })
+    } catch (e) {
         console.log(e);
     }
+
 });
 
 app.get('/getChallenges', function (request,response){

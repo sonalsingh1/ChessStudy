@@ -8,6 +8,9 @@ if(username && password) {
 } else {
     location.href = '/';
 }
+if(urlParams.get('found')){
+    alert('No player with this username, Please try again!');
+}
 
 // disable all buttons and inputs, show the cancel button
 if(disable){
@@ -109,7 +112,9 @@ function onLogOut() {
 
 function startChallenge(){
     let opponentUserName = prompt('Please enter opponent User Name: ', 'User Name');
-    if(opponentUserName){ // not null input
+    if  (opponentUserName === username) { //challenge himself
+        alert('You cannot challenge yourself, Please Try Again!');
+    } else if(opponentUserName){ // not null input
         let btn = $('input[name="style_time"]:checked').val().split("_");
         let chessOrChess960=$('input[name="game_type"]:checked').val();
         let rate_type = $('input[name="rate_type"]:checked').val();
@@ -135,6 +140,8 @@ function startChallenge(){
             chessOrChess960:chessOrChess960
         };
         location.href = "/challenge?" + $.param(data);
+    } else{ //null input
+        alert(`Please introduce opponent's username!`);
     }
 }
 function removeChallenge(){

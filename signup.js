@@ -3,7 +3,7 @@ function signUp(){
     let email = document.querySelector('#email').value;
     let password = document.querySelector('#password').value;
     if (!userName || !email || !password){
-        $('#msg').text('Missing Required Information');
+        $('#msg').text('Username / Email / Password cannot be empty, please try again!');
         $('#msg').css('color','red');
     } else {
         let data = {
