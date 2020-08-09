@@ -18,8 +18,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'xjcpdp1995@gmail.com',
-        pass: 'abc13916705665'
+        user: 'fork.chess@gmail.com',
+        pass: '!knife.chess20'
     }
 });
 
@@ -481,13 +481,28 @@ io.on('connection', function (socket) {
     socket.on('challenge', function (data){
         playerId = data.username;
         let roomId = data.roomId;
-        socket.emit('player', {playerId, players: 1, color: 'white', roomId});
+        //random color
+        let color = Math.random();
+        if (color >= 0.5) color = 'white';
+        else color = 'black';
+        socket.emit('player', {playerId, players: 1, color: color, roomId});
+        games[roomId].players++;
+        games[roomId].pid[0] = playerId;
+        games[roomId].p1_color = color;
+        // socket.emit('player', {playerId, players: 1, color: 'white', roomId});
     });
 
     socket.on('second_challenge',function (data){
         playerId = data.username;
         let roomId = data.roomId;
-        socket.emit('player', {playerId, players:2, color: 'black', roomId});
+        let color;
+        if(games[roomId].p1_color === 'white') color = 'black';
+        else color = 'white';
+        socket.emit('player', {playerId, players: 2, color: color, roomId: roomId});
+        games[roomId].players++;
+        games[roomId].pid[1] = playerId;
+        games[roomId].p2_color = color;
+        // socket.emit('player', {playerId, players:2, color: 'black', roomId});
         let from = data.from;
         for (let i = 0; i < activeChallenges.length; i++) {
             if(from === activeChallenges[i].from && playerId === activeChallenges[i].to){
