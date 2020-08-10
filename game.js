@@ -338,6 +338,14 @@ socket.on('player_fork', function (msg){
     fork(msg.ID);
 });
 
+
+socket.on('opponentDisconnected', function (msg){
+    if(roomId==msg.roomId && !isGameOver) {
+        alert('Opponent Disconnected from room'+msg.roomId);
+    }
+});
+
+
 function updateStatus (id) {
     var status = '';
     var $status = $('#status_' + id);
@@ -567,11 +575,14 @@ socket.on('gameOver', function (msg) {
 function sendResignRequest(parentHtml){
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
     let msg = {roomId: roomId, ID:id};
-    socket.emit('resign',msg);
-    // resigned=true;
-    resignStatusArray[id-1]=true;
-    winners.push(0);
-    gameOverForBoard(msg);
+    let resignConfirm = confirm("You are about to resign. Do you confirm?");
+    if (resignConfirm) {
+        socket.emit('resign', msg);
+        // resigned=true;
+        resignStatusArray[id - 1] = true;
+        winners.push(0);
+        gameOverForBoard(msg);
+    }
 }
 
 socket.on('opponentResign', function(msg){
@@ -583,7 +594,10 @@ socket.on('opponentResign', function(msg){
 function offerDraw(parentHtml) {
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
     let msg = {roomId: roomId, ID:id};
-    socket.emit('offerDraw',msg);
+    let drawConfirm = confirm("You are about to offer a draw. Do you confirm?");
+    if (drawConfirm) {
+        socket.emit('offerDraw', msg);
+    }
 }
 
 socket.on('opponentOfferDraw', function(msg){

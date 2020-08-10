@@ -540,15 +540,21 @@ io.on('connection', function (socket) {
     });
 
     socket.on('disconnect', function () {
+        let roomId;
         for (let i = 0; i < 100; i++) {
             if (games[i].pid[0] == playerId || games[i].pid[1] == playerId) {
                 games[i].players--;
                 if (games[i].players == 0){
                     isRoomFull[i] = false;
                 }
+                roomId=i;
+                console.log("Room Disconnected:"+i);
+                break;
             }
         }
+        console.log("Room Disconnected:"+roomId);
         //Get each element in the queue and remove the entry for the player
+
         for (const [key, value] of queues.entries()) {
             console.log(queues.get(key));
             let queueElementsArray = queues.get(key);
@@ -557,16 +563,20 @@ io.on('connection', function (socket) {
             for(let i=0;i<queueElementsArray.length;++i){
                 if(playerId===queueElementsArray[i].playerId){
                     index=i;
+                    // roomId=queueElementsArray[i].roomId;
                     break;
                 }
             }
-            console.log("cancel index="+index);
             if(index!=undefined){
                 queues.get(key).splice(index,1);
-                console.log("Queue after removal of entry at index="+ index);
-                // isRoomFull[req.query.roomId]=false;   //Mark the room as not full
+                console.log("Queue after removal of entry at index after disconnect="+ index);
             }
         }
+        msg={
+            roomId: roomId,
+            playerIdDisconnected: playerId
+        }
+        io.emit('opponentDisconnected', msg);
         console.log(playerId + ' disconnected');
         console.log(queues);
     });
@@ -613,7 +623,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on('resign', function(msg){
-        socket.broadcast.emit('opponentResign', msg)
+            socket.broadcast.emit('opponentResign', msg)
     });
 
     socket.on('offerDraw', function(msg){
