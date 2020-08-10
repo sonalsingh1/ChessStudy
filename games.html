@@ -40,6 +40,7 @@
     var socket = io();
   </script> -->
   <button id="cancelButton" class="btn btn-success" onclick="cancelGame()">Cancel</button>
+  <div id="game_type"></div>
   <div id="player"></div>
   <div id="state">Join Game</div>
   <div id="forkCount" hidden="true">
@@ -53,6 +54,7 @@
   <label id="AbortLab" hidden="true" style="font-size: small">WHITE player has 20 seconds to make the first move before the game aborts</label>
   <div class="container">
     <div class="game" id="game_1">
+        <label id="bn_1"> Board #: 1</label>
         <div id="opponentTimer_1" style="text-align: center">
           <div class="values"></div>
         </div>
@@ -79,11 +81,11 @@
           <label>Status:</label>
           <div id="status_1"></div>
           <br>
-          <label>FEN:</label>
-          <div id="fen_1"></div>
+          <label hidden="true">FEN:</label>
+          <div id="fen_1" hidden="true"></div>
           <br>
-          <label>PGN:</label>
-          <div class="pgn" id="pgn_1"></div>
+          <label hidden="true">PGN:</label>
+          <div class="pgn" id="pgn_1" hidden="true"></div>
           <button id="forkButton_1" class="btn btn-success f_btn" onclick="sendForkRequest(this.parentNode.parentNode.parentNode)" disabled="true" hidden="true">Fork</button>
             <button id="resignButton_1" class="btn btn-success" onclick="sendResignRequest(this.parentNode.parentNode.parentNode)">Resign</button>
             <button id="drawButton_1" class="btn btn-success" onclick="offerDraw(this.parentNode.parentNode.parentNode)">Offer Draw</button>

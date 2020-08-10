@@ -849,7 +849,7 @@ io.on('connection', function (socket) {
                       if (color >= 0.5) color = 'white';
                       else color = 'black';
 
-                      socket.emit('player', {playerId, players: 1, color: color, roomId});
+                      socket.emit('player', {playerId, players: 1, color: color, roomId, eloRating});
                       games[roomId].players++;
                       games[roomId].pid[0] = playerId;
                       games[roomId].p1_color = color;
@@ -908,7 +908,7 @@ io.on('connection', function (socket) {
                           let color;
                           if(games[previousRoomId].p1_color === 'white') color = 'black';
                           else color = 'white';
-                          socket.emit('player', {playerId, players: 2, color: color, roomId: previousRoomId});
+                          socket.emit('player', {playerId, players: 2, color: color, roomId: previousRoomId, eloRating});
                           games[previousRoomId].players++;
                           games[previousRoomId].pid[1] = playerId;
                           games[previousRoomId].p2_color = color;
@@ -926,7 +926,7 @@ io.on('connection', function (socket) {
                           let color = Math.random();
                           if (color >= 0.5) color = 'white';
                           else color = 'black';
-                          socket.emit('player', {playerId, players: 1, color: color, roomId});
+                          socket.emit('player', {playerId, players: 1, color: color, roomId, eloRating});
                           games[roomId].players++;
                           games[roomId].pid[0] = playerId;
                           games[roomId].p1_color = color;

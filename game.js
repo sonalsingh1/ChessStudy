@@ -21,7 +21,7 @@ function getPara() {
         param[i] = para[i].split("=")[1];
     }
 }
-
+$('#game_type').text(`Game Type: ${param[0]}_${param[1]}+${param[2]}*${param[3]}`);
 
 var games = Array(parseInt(param[3]) * 2 + 1);
 // initialize all games in the games array
@@ -247,8 +247,9 @@ socket.on('player', (msg) => {
     roomId = msg.roomId; // setting up the roomID
     var plno = document.getElementById('player');
     color = msg.color;
+    let elo = msg.eloRating;
 
-    plno.innerHTML = 'Player ' + msg.players + " : " + color;
+    plno.innerHTML = `Player: ${param[5]} - ${elo} : ${color}`;
     players = msg.players;
 
     if(players === 2){
@@ -429,6 +430,7 @@ function fork(id){
     var new_board = new_div.querySelector("#board_"+id);
     let new_timer = new_div.querySelector("#timer_"+id);
     let new_opponentTimer = new_div.querySelector("#opponentTimer_"+id);
+    let new_board_label = new_div.querySelector('#bn_'+id);
 
     // setting up new id (incremented by 1) for all copied elements
     new_div.querySelector("#fen_"+id).setAttribute("id","fen_"+new_id);
@@ -437,7 +439,8 @@ function fork(id){
     new_div.querySelector("#forkButton_"+id).setAttribute("id","forkButton_"+new_id);
     new_div.querySelector("#resignButton_"+id).setAttribute("id","resignButton_"+new_id);
     new_div.querySelector("#drawButton_"+id).setAttribute("id","drawButton_"+new_id);
-
+    new_div.querySelector('#bn_'+id).setAttribute('id','bn_'+new_id);
+    new_div.querySelector('#bn_'+new_id).innerText = `Board #: ${new_id}`;
     new_board.setAttribute("id","board_"+new_id);
     new_div.setAttribute("class","game");
     new_div.setAttribute("id","game_"+new_id);
@@ -843,6 +846,7 @@ socket.on('abort', function (msg){
    if(roomId === msg.roomId){
        alert('This game has been ABORTED!' +
            '\n\nYou will be redirected to your home page.');
+       isGameOver = true;
        window.history.back();
    }
 });
