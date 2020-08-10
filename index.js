@@ -51,7 +51,7 @@ app.use(express.static(__dirname + "/"));
 
 var games = Array(100);
 for (let i = 0; i < 100; i++) {
-    games[i] = {players: 0 , pid: [0 , 0], p1_color: undefined, p2_color: undefined};
+    games[i] = {players: 0 , pid: [0 , 0], p1_color: undefined, p2_color: undefined, qName: undefined};
 }
 
 // array indicate if the room is full
@@ -541,13 +541,15 @@ io.on('connection', function (socket) {
 
     socket.on('disconnect', function () {
         let roomId;
+        let qName;
         for (let i = 0; i < 100; i++) {
-            if (games[i].pid[0] == playerId || games[i].pid[1] == playerId) {
+            if (games[i].pid[0] === playerId || games[i].pid[1] === playerId) {
                 games[i].players--;
                 if (games[i].players == 0){
                     isRoomFull[i] = false;
                 }
                 roomId=i;
+                qName = games[i].qName;
                 console.log("Room Disconnected:"+i);
                 break;
             }
@@ -572,15 +574,68 @@ io.on('connection', function (socket) {
                 console.log("Queue after removal of entry at index after disconnect="+ index);
             }
         }
-        msg={
-            roomId: roomId,
-            playerIdDisconnected: playerId
+        try {
+            qName = qName.split('_');
+        } catch (e){
+            return
         }
-        io.emit('opponentDisconnected', msg);
-        console.log(playerId + ' disconnected');
-        console.log(queues);
+        qName =qName[0]+'_'+qName[4]+'F'+qName[3];
+        console.log(qName)
+        let sql = `SELECT ${qName} AS col FROM chessstudy.elo_rating WHERE ELO_ID = '${playerId}' `
+        try {
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+                let opponentElo = result[0].col;
+                let msg={
+                    roomId: roomId,
+                    playerIdDisconnected: playerId,
+                    opponentElo: opponentElo
+                }
+                io.emit('opponentDisconnected', msg);
+                console.log(playerId + ' disconnected');
+                console.log(queues);
+            })
+        } catch (e) {
+            console.log(e);
+        }
     });
 
+    socket.on('calc_dc_elo', function (msg){
+        let r2 = parseInt(msg.opponentELO);
+        let username = msg.username;
+        let opponentName = msg.opponentName;
+        let roomId = msg.roomId;
+        let r1;
+        let sql = `SELECT ${msg.elo_col} AS col FROM chessstudy.elo_rating WHERE ELO_ID = '${username}'`;
+        try {
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+                r1 = result[0].col;
+                let R1 = Math.pow(10, r1 / 400);
+                let R2 = Math.pow(10, r2 / 400);
+                let E1 = R1 / (R1 + R2);
+                let E2 = R2 / (R1 + R2);
+                let new_r1 = Math.round(r1 + 24*(1 - E1));
+                let new_r2 = Math.round(r2 + 24*(1 - E2));
+                sql = `UPDATE chessstudy.elo_rating SET ${msg.elo_col} = ${new_r1} WHERE ELO_ID = '${username}';`;
+                console.log(sql);
+                con.query(sql, function (err, result){
+                   if (err) throw err;
+                });
+                sql = `UPDATE chessstudy.elo_rating SET ${msg.elo_col} = ${new_r2} WHERE ELO_ID = '${opponentName}';`;
+                con.query(sql, function (err, result){
+                    if (err) throw err;
+                })
+                msg = {
+                    roomId: roomId
+                }
+                socket.emit('dc_elo_done',msg);
+            })
+        }catch (e) {
+            console.log(e);
+            con.rollback()
+        }
+    })
 
 
     socket.on('file_content', function (msg) {
@@ -798,7 +853,7 @@ io.on('connection', function (socket) {
                       games[roomId].players++;
                       games[roomId].pid[0] = playerId;
                       games[roomId].p1_color = color;
-
+                      games[roomId].qName = qName;
                       console.log("first player send " + roomId);
 
                       for (const [key, value] of queues.entries()) {
@@ -875,6 +930,7 @@ io.on('connection', function (socket) {
                           games[roomId].players++;
                           games[roomId].pid[0] = playerId;
                           games[roomId].p1_color = color;
+                          games[roomId].qName = qName;
                       }
 
                   }

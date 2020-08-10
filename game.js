@@ -340,10 +340,24 @@ socket.on('player_fork', function (msg){
 
 
 socket.on('opponentDisconnected', function (msg){
-    if(roomId==msg.roomId && !isGameOver) {
-        alert('Opponent Disconnected from room'+msg.roomId);
+    if(roomId===msg.roomId && !isGameOver) {
+        let opponentELO = msg.opponentElo;
+        let opponentName = msg.playerIdDisconnected;
+        msg = {
+            username: param[5],
+            opponentName: opponentName,
+            opponentELO: opponentELO,
+            elo_col: param[6],
+            roomId: roomId
+        }
+        socket.emit('calc_dc_elo', msg);
     }
 });
+
+socket.on('dc_elo_done', function (msg){
+    alert('Opponent Disconnected, you win!');
+    location.href = `/homepage?username=${param[5]}&password=${param[8]}`;
+})
 
 
 function updateStatus (id) {
