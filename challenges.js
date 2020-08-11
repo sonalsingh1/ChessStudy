@@ -6,7 +6,7 @@ if(username) {
     $('#user').text(`User Name: ${username}`);
 }
 if(urlParams.get('cancel')){
-    alert('Sorry, This Challenge Has Been Canceled!');
+    alert('Sorry, This Challenge Has Been Cancelled!');
 }
 let totalNum = urlParams.get('num');
 if(totalNum){
@@ -60,6 +60,7 @@ function displayTopRankings() {
     console.log(username);
     let data = {
         username: username,
+        password:password
     };
     location.href = "/topRankings?" + $.param(data);
 }
