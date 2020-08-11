@@ -10,7 +10,8 @@ var pgn_file_name;
 var old_elo, new_elo;
 var started = false;
 var challenge = urlParams.get('challenge');
-var secondPlayer = urlParams.get('second')
+var secondPlayer = urlParams.get('second');
+let isDrawAccepted=false;
 getPara();
 console.log(param);
 // function that get parameters from the URL
@@ -35,6 +36,7 @@ var opponentTimers = Array(games.length); // Same length timers array contains a
 var gameOverBoards = Array(games.length).fill(false);
 var timeUpStatusArray = Array(games.length).fill(false);
 var resignStatusArray = Array(games.length).fill(false);
+var drawStatusArray = Array(games.length).fill(false);
 
 var socket = io(); // calls the io.on('connection') function in server.
 
@@ -380,6 +382,8 @@ function updateStatus (id) {
         status = 'Resigned! Game over!';
     }else if(timeUpStatusArray[id-1]){
         status = 'Game over, time Up for ' + moveColor
+    }else if(drawStatusArray[id-1]){
+        status = 'Draw Accepted! Game over for board!';
     }else {
         // checkmate?
         if (games[id - 1].in_checkmate()) {
@@ -439,6 +443,8 @@ function fork(id){
     new_div.querySelector("#forkButton_"+id).setAttribute("id","forkButton_"+new_id);
     new_div.querySelector("#resignButton_"+id).setAttribute("id","resignButton_"+new_id);
     new_div.querySelector("#drawButton_"+id).setAttribute("id","drawButton_"+new_id);
+    new_div.querySelector("#acceptDrawButton_"+id).setAttribute("id","acceptDrawButton_"+new_id);
+    new_div.querySelector("#cancelDrawButton_"+id).setAttribute("id","cancelDrawButton_"+new_id);
     new_div.querySelector('#bn_'+id).setAttribute('id','bn_'+new_id);
     new_div.querySelector('#bn_'+new_id).innerText = `Board #: ${new_id}`;
     new_board.setAttribute("id","board_"+new_id);
@@ -611,31 +617,68 @@ socket.on('opponentResign', function(msg){
 function offerDraw(parentHtml) {
     let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
     let msg = {roomId: roomId, ID:id};
+    drawStatusArray[msg.ID-1]=true;
+    console.log("ID during Offer Draw="+id);
     let drawConfirm = confirm("You are about to offer a draw. Do you confirm?");
     if (drawConfirm) {
+        document.querySelector('#drawButton_'+id).hidden = true;
+        document.querySelector('#cancelDrawButton_'+id).hidden = false;
         socket.emit('offerDraw', msg);
     }
+}
+
+function acceptOfferDraw(parentHtml) {
+    let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
+    let msg = {roomId: roomId, ID:id};
+    winners.push(0.5);
+    drawStatusArray[msg.ID-1]=true;
+    gameOverForBoard(msg);
+    disableAllDrawButtons(id);
+    isDrawAccepted=true;
+    socket.emit('drawAccepted', msg);
 }
 
 socket.on('opponentOfferDraw', function(msg){
     if(roomId === msg.roomId) {
         let id = msg.ID;
-        let re = confirm("Your opponent offered a draw on board #" + id + ". Do you accept?");
-        if (re === true) {
-            // draw logic follows
-            socket.emit('drawAccepted', msg);
-        } else {
-            // dont accept draw
-        }
+        document.querySelector('#drawButton_'+id).hidden = true;
+        document.querySelector('#acceptDrawButton_'+id).hidden = false;
+    }
+});
+
+function cancelOfferDraw(parentHtml) {
+    let id = parseInt(parentHtml.querySelector('.board').getAttribute('id').split('_')[1]);
+    let msg = {roomId: roomId, ID:id};
+    drawStatusArray[msg.ID-1]=false;
+    document.querySelector('#drawButton_'+id).hidden = false;
+    document.querySelector('#cancelDrawButton_'+id).hidden = true;
+    socket.emit('offerDrawCancel', msg);
+}
+
+socket.on('opponentCancelledOfferDraw', function(msg){
+    if(roomId === msg.roomId) {
+        let id = msg.ID;
+        drawStatusArray[msg.ID-1]=false;
+        document.querySelector('#drawButton_'+id).hidden = false;
+        document.querySelector('#acceptDrawButton_'+id).hidden = true;
     }
 });
 
 socket.on('drawAccepted', function(msg){
-    if(roomId === msg.roomId){
+    console.log("drawAccepted flag after opponent accepts=" + isDrawAccepted);
+    if(roomId === msg.roomId && !isDrawAccepted){
         winners.push(0.5);
+        drawStatusArray[msg.ID-1]=true;
         gameOverForBoard(msg);
+        disableAllDrawButtons(msg.ID);
     }
 });
+
+function disableAllDrawButtons(id) {
+    document.querySelector('#acceptDrawButton_'+id).disabled = true;
+    document.querySelector('#cancelDrawButton_'+id).disabled = true;
+    document.querySelector('#drawButton_'+id).disabled = true;
+}
 
 function increaseTime(id){
     if (timeUpStatusArray[id-1]) return;

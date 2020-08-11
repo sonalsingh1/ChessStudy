@@ -685,6 +685,10 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('opponentOfferDraw',msg)
     });
 
+    socket.on('offerDrawCancel', function(msg){
+        socket.broadcast.emit('opponentCancelledOfferDraw',msg)
+    });
+
     socket.on('drawAccepted', function(msg){
         io.emit('drawAccepted', msg);
     });
