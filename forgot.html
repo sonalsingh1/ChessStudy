@@ -22,7 +22,7 @@
 		}
 		.console{
 			margin-left: 10px;
-			font-size: 14px;
+			font-size: 16px;
 		}
 		.description{
 			text-align: center;
@@ -55,6 +55,9 @@
 	<br>
 	<button style="margin: 10px; width: 100px" onclick="getInfo()">Retrieve</button>
 	<button style="margin: 10px; width: 100px" onclick="location.href='./login.html'">Cancel</button>
+	<br>
+	<br>
+	<br>
 	<br>
 	<br>
 	<br>
@@ -99,6 +102,7 @@
 	}
 	if (success){
 		alert('An email has been sent to your email account!');
+		location.href = '/';
 	}
 
 </script>

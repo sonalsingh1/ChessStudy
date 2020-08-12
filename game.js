@@ -12,6 +12,7 @@ var started = false;
 var challenge = urlParams.get('challenge');
 var secondPlayer = urlParams.get('second');
 let isDrawAccepted=false;
+var old_elo;
 getPara();
 console.log(param);
 // function that get parameters from the URL
@@ -22,7 +23,7 @@ function getPara() {
         param[i] = para[i].split("=")[1];
     }
 }
-$('#game_type').text(`Game Type: ${param[0]}_${param[1]}+${param[2]}*${param[3]}`);
+$('#game_type').text(`Game Type: ${param[0]}: ${param[1]}+${param[2]}*${param[3]}`);
 
 var games = Array(parseInt(param[3]) * 2 + 1);
 // initialize all games in the games array
@@ -36,6 +37,7 @@ var opponentTimers = Array(games.length); // Same length timers array contains a
 var gameOverBoards = Array(games.length).fill(false);
 var timeUpStatusArray = Array(games.length).fill(false);
 var resignStatusArray = Array(games.length).fill(false);
+var resignColorArray = Array(games.length);
 var drawStatusArray = Array(games.length).fill(false);
 
 var socket = io(); // calls the io.on('connection') function in server.
@@ -59,6 +61,7 @@ var forkButton= document.getElementById('forkButton_1');
 // let timeUp=false;
 // let resigned= false;
 let isGameOver= false;
+let GAMEOVER = false;
 
 var connect = function(){
     let qName = param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7]+"_"+param[4];// should be of format: bullet_1_0_0_chess
@@ -109,6 +112,7 @@ socket.on('move', function (msg) {
             document.querySelector('#AbortLab').hidden = true;
             $('#resignButton_1').prop('disabled',false);
             $('#drawButton_1').prop('disabled',false);
+            GAMEOVER = false;
         }
         let fork = document.querySelector("#forkButton_"+msg.boardId);
         pgn_file_content[msg.boardId-1] = msg.pgn;
@@ -193,6 +197,7 @@ var onDrop = function (source, target) {
             document.querySelector('#AbortLab').hidden = true;
             $('#resignButton_1').prop('disabled',false);
             $('#drawButton_1').prop('disabled',false);
+            GAMEOVER = false;
         }
         if (!timeUpStatusArray[id - 1]) {
             pgn_file_content[id - 1] += '@' + timers[id - 1].getTimeValues().toString() + " ";
@@ -250,14 +255,17 @@ socket.on('player', (msg) => {
     var plno = document.getElementById('player');
     color = msg.color;
     let elo = msg.eloRating;
+    old_elo = msg.eloRating;
 
-    plno.innerHTML = `Player: ${param[5]} - ${elo} : ${color}`;
+    plno.innerHTML = `${color.toUpperCase()}: ${param[5]} - ${elo}`;
     players = msg.players;
 
     if(players === 2){
         play = false;
         let msg = {
-          roomId:roomId
+            roomId:roomId,
+            name: param[5],
+            elo: elo
         };
         socket.emit('start', msg);
         state.innerHTML = "Game in Progress";
@@ -282,6 +290,7 @@ socket.on('player', (msg) => {
 
         document.querySelector('#AbortBtn').hidden = false;
         document.querySelector('#AbortLab').hidden = false;
+        $('#status_1').text('White to move')
     }
     else {
         state.innerHTML = "Waiting for Second player";
@@ -302,10 +311,17 @@ socket.on('player', (msg) => {
 
 socket.on('start', function (msg){
    if(msg.roomId === roomId){
+       let c = (color==='black')? 'white': 'black';
        play = false;
-       let msg = {
-           roomId:roomId
+       let opponame = msg.name;
+       let oppoElo = msg.elo;
+       $('#oppo').text(`${c.toUpperCase()}: ${opponame} - ${oppoElo}`);
+       msg = {
+           roomId:roomId,
+           name: param[5],
+           elo: old_elo
        };
+       socket.emit('start_reply', msg);
        state.innerHTML = "Game in Progress";
        // document.querySelector(".msg").hidden = true;
        forkButton.disabled=false;
@@ -326,6 +342,7 @@ socket.on('start', function (msg){
 
        document.querySelector('#AbortBtn').hidden = false;
        document.querySelector('#AbortLab').hidden = false;
+       $('#status_1').text('White to move')
        setTimeout(function (){
            if(!started){
                abort();
@@ -336,6 +353,12 @@ socket.on('start', function (msg){
    }
 });
 
+socket.on('start_reply', function (msg){
+    if(roomId === msg.roomId){
+        let c = color==='black'? 'white':'black';
+        $('#oppo').text(`${c.toUpperCase()}: ${msg.name} - ${msg.elo}`);
+    }
+});
 
 socket.on('player_fork', function (msg){
     fork(msg.ID);
@@ -343,7 +366,7 @@ socket.on('player_fork', function (msg){
 
 
 socket.on('opponentDisconnected', function (msg){
-    if(roomId===msg.roomId && !isGameOver) {
+    if(roomId===msg.roomId && !GAMEOVER) {
         let opponentELO = msg.opponentElo;
         let opponentName = msg.playerIdDisconnected;
         msg = {
@@ -379,11 +402,11 @@ function updateStatus (id) {
         status = 'Game over for board '+ id;
     }else if(resignStatusArray[id-1]){
         console.log("Resigned board= ", id);
-        status = 'Resigned! Game over!';
+        status = `Player ${resignColorArray[id-1]} Resigned!`;
     }else if(timeUpStatusArray[id-1]){
         status = 'Game over, time Up for ' + moveColor
     }else if(drawStatusArray[id-1]){
-        status = 'Draw Accepted! Game over for board!';
+        status = 'Draw Accepted!';
     }else {
         // checkmate?
         if (games[id - 1].in_checkmate()) {
@@ -419,6 +442,7 @@ function fork(id){
         document.querySelector('#AbortLab').hidden = true;
         $('#resignButton_1').prop('disabled',false);
         $('#drawButton_1').prop('disabled',false);
+        GAMEOVER = false;
         if (color === 'white') {
             timers[id - 1].start();
         } else{
@@ -603,6 +627,7 @@ function sendResignRequest(parentHtml){
         socket.emit('resign', msg);
         // resigned=true;
         resignStatusArray[id - 1] = true;
+        resignColorArray[id - 1] = color;
         winners.push(0);
         gameOverForBoard(msg);
     }
@@ -610,6 +635,7 @@ function sendResignRequest(parentHtml){
 
 socket.on('opponentResign', function(msg){
     resignStatusArray[msg.ID-1]=true;
+    resignColorArray[msg.ID-1] = color==='black'?'white':'black';
     winners.push(1);
     gameOverForBoard(msg);
 });
@@ -733,6 +759,7 @@ function totalGameOver(){
         };
         socket.emit('independent_score', msg);
     }
+    GAMEOVER = true;
 }
 // create_pgn_content();
 function create_pgn_content(){
@@ -894,22 +921,9 @@ socket.on('abort', function (msg){
    }
 });
 
-// window.addEventListener('beforeunload', function (e) {
-//     e.preventDefault();
-//     e.returnValue = '';
-//     let username= param[5];
-//     let password= param[8];
-//     msg={
-//         qName : param[0] + "_" + param[1] + "_" + param[2] + "_" + param[3]+"_"+param[7]+"_"+param[4],
-//         username: username,
-//         password: password
-//     };
-//     location.href = "/disconnected?" + $.param(msg);
-//
-// });
 
 function downloadGame(){
-    location.href = "/download?" + $.param({file_name: pgn_file_name});
+    location.href = '/download?' + $.param({file_name: pgn_file_name});
 }
 
 function cancelGame(){

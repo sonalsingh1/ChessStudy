@@ -475,7 +475,7 @@ app.get('/topRank', (request, response) => {
 });
 
 app.get('/download', function (request, response){
-    response.sendFile(__dirname + `/cfn/${request.query.file_name}`);
+    response.download(__dirname + `/cfn/${request.query.file_name}`);
 });
 
 io.on('connection', function (socket) {
@@ -616,7 +616,7 @@ io.on('connection', function (socket) {
                 let E1 = R1 / (R1 + R2);
                 let E2 = R2 / (R1 + R2);
                 let new_r1 = Math.round(r1 + 24*(1 - E1));
-                let new_r2 = Math.round(r2 + 24*(1 - E2));
+                let new_r2 = Math.round(r2 + 24*(0 - E2));
                 sql = `UPDATE chessstudy.elo_rating SET ${msg.elo_col} = ${new_r1} WHERE ELO_ID = '${username}';`;
                 console.log(sql);
                 con.query(sql, function (err, result){
@@ -823,6 +823,10 @@ io.on('connection', function (socket) {
 
     socket.on('abort',function (msg){
        io.emit('abort', msg);
+    });
+
+    socket.on('start_reply', function (msg){
+        socket.broadcast.emit('start_reply',msg);
     });
 
     function match(playerId, qName) {
