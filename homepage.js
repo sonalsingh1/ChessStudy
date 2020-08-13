@@ -12,6 +12,10 @@ if(urlParams.get('found')){
     alert('No player with this username, Please try again!');
 }
 
+if(urlParams.get('full')){
+    alert('Chess Fork has currently reached its maximum capacity, please try again later!');
+}
+
 // disable all buttons and inputs, show the cancel button
 if(disable){
     let btns = document.getElementsByTagName('button');

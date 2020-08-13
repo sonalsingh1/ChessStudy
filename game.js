@@ -383,6 +383,10 @@ socket.on('opponentDisconnected', function (msg){
 socket.on('dc_elo_done', function (msg){
     alert('Opponent Disconnected, you win!');
     location.href = `/homepage?username=${param[5]}&password=${param[8]}`;
+});
+
+socket.on('full',function (msg){
+    location.href = `/homepage?username=${param[5]}&password=${param[8]}&full=true`;
 })
 
 

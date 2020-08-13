@@ -325,6 +325,10 @@ app.get('/challenge', function(request, response){
                 sql = `SELECT ${elo_col} AS col FROM chessstudy.elo_rating WHERE ELO_ID = '${username}'`;
                 try {
                     let roomId = getID();
+                    if (roomId === null || roomId === undefined){
+                        response.redirect(`/homepage?username=${username}&password=${password}&full=true`);
+                        return;
+                    }
                     con.query(sql, function (err, result) {
                         let elo = result[0].col;
                         let challengeObj = {
@@ -850,6 +854,11 @@ io.on('connection', function (socket) {
 
                   if (queues.get(qName).length === 0) {
                       let roomId = getID();
+                      if (roomId === null || roomId === undefined){
+                          let msg;
+                          socket.emit('full',msg);
+                          return
+                      }
                       queues.get(qName).push({playerId, roomId, eloRating}); // PlayerId is going to be replaced by the player ID extracted from DB
 
                       //random color
@@ -924,6 +933,11 @@ io.on('connection', function (socket) {
                       } else {
                           //Add current player to the queue
                           let roomId = getID();
+                          if (roomId === null || roomId === undefined){
+                              let msg;
+                              socket.emit('full',msg);
+                              return
+                          }
                           queues.get(qName).push({playerId, roomId, eloRating}); // PlayerId is going to be replaced by the player ID extracted from DB
                           console.log("Queue after queueMemberMap is empty");
                           for (const [key, value] of queues.entries()) {
